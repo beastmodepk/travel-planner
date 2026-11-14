@@ -128,7 +128,7 @@ struct EmailResult {
     var detail: String
 }
 
-protocol EmailProvider {
+protocol EmailProvider: Sendable {
     var id: String { get }
     var label: String { get }
     func send(_ request: EmailRequest) async -> EmailResult
