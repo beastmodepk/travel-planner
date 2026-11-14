@@ -2,7 +2,7 @@
 
 Plan trips side by side — pick a trip type, set dates and travel style, and the app prices everything: flights, hotels, passes/tickets and gear — with booking links on every line.
 
-Trips can be about anything. The first fully priced type is **Ski — West Coast** (Park City, Tahoe–Heavenly, Alta/Snowbird, Jackson Hole, Breckenridge); more types (Beach, City break, Adventure, Family) are added over time behind the same provider contracts.
+The catalog carries two fully priced trip types: **Ski — West Coast** (Park City, Tahoe–Heavenly, Alta/Snowbird, Jackson Hole, Breckenridge) and **Ski — Japan** (Niseko). New types arrive as dataset edits behind the same provider contracts.
 
 **Status:** prototype built in Muse (black & white — matte or pure black — sleek, personalized onboarding). This repo holds the portable codebase: the pricing/email backends sit behind provider contracts so the app can be deployed anywhere, published on GitHub, and carried to an iPhone app, with an AI model attachable for live price research.
 

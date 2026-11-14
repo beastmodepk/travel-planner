@@ -25,7 +25,7 @@ GitHub Pages at `https://beastmodepk.github.io/travel-planner/` by
 | `index.html` | Shell (loads `engine.js` then `app.js`) |
 | `styles.css` | Jet black #000 + white only; photos are the only colour |
 | `engine.js` | Pricing engine — a 1:1 port of the iOS engine against the shared dataset (single-trip pricing, Epic Pass plan, price-from, style presets) |
-| `app.js` | UI: onboarding, Explore, Trips + phases, editor, Epic Pass panel, opt-in Compare, brochure chooser + queue, Profile, Settings, About |
+| `app.js` | UI: onboarding, Explore, Trips + phases, editor, opt-in Compare (tab appears once a pick exists), brochure chooser + queue, Profile, Settings, About |
 | `dataset.json` | Copy of `packages/dataset/dataset.json` — CI fails if the copies drift |
 
 ## State
