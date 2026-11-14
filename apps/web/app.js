@@ -45,8 +45,9 @@
       trips: [],
       compare: [], // [{tripId, tier}] — opt-in only, max 3, priced live
       brochures: [], // queued brochure requests
-      ui: { tab: 'explore', editorTripId: null, ob: null, hotelTag: 'All', dismissedSuggestions: {} },
+      boxDone: {}, // editor box completion per trip: { [tripId]: { basics|flights|hotels|lift|gear: 'picked'|'skipped' } } — display state only, never affects pricing
       prefs: { tripSort: 'manual', gallerySort: 'curated', tripFilter: '', galleryFilter: '', galleryType: 'all', hotelSort: 'price', phaseTab: 'all' },
+      ui: { tab: 'explore', editorTripId: null, ob: null, hotelTag: 'All', flightFare: 'all', dismissedSuggestions: {} },
     };
   }
   function load() {
@@ -435,9 +436,49 @@
   }
 
   // ── Editor (the only place the breakdown lives) ─────────────────────────
+  // The editor is a stack of picking BOXES in an accordion flow: a box
+  // collapses when its pick is made (or it is skipped, where optional),
+  // showing a one-line summary + ✓ / "Skipped"; the next incomplete box
+  // then opens. Completion is display state (state.boxDone) — it never
+  // affects pricing. Transfers are a single researched line, not a
+  // choice, so they get no box.
+  const BOXES = [
+    { id: 'basics', title: 'Basics' },
+    { id: 'flights', title: 'Flights' },
+    { id: 'hotels', title: 'Accommodation' },
+    { id: 'lift', title: 'Lift / Pass' },
+    { id: 'gear', title: 'Gear' },
+  ];
+  function boxStatus(tripId, box) { return (state.boxDone[tripId] || {})[box] || null; }
+  function setBoxStatus(tripId, box, status) {
+    if (!state.boxDone[tripId]) state.boxDone[tripId] = {};
+    if (status) state.boxDone[tripId][box] = status;
+    else delete state.boxDone[tripId][box];
+  }
+  function clearBoxStatuses(tripId, boxes) { boxes.forEach((b) => setBoxStatus(tripId, b, null)); }
+  function firstOpenBox(tripId) { const b = BOXES.find((x) => !boxStatus(tripId, x.id)); return b ? b.id : null; }
+  function boxHTML(trip, box, summary, bodyHTML) {
+    const st = boxStatus(trip.id, box);
+    const open = state.ui.openBox === box;
+    const title = BOXES.find((b) => b.id === box).title;
+    return `<div class="box${open ? ' open' : ''}">
+      <button class="box-head" onclick="TP.toggleBox('${box}')" aria-expanded="${open}">
+        <span class="box-title">${title}</span>
+        <span class="box-sum">${esc(summary)}</span>
+        ${st === 'picked' ? '<span class="badge fill">✓ Done</span>' : st === 'skipped' ? '<span class="badge">Skipped</span>' : ''}
+        <span aria-hidden="true">${open ? '▴' : '▾'}</span>
+      </button>
+      ${open ? `<div class="box-body">${bodyHTML}</div>` : ''}
+    </div>`;
+  }
+
   function renderEditor() {
     const trip = state.trips.find((t) => t.id === state.ui.editorTripId);
     if (!trip) { state.ui.tab = 'trips'; return renderTrips(); }
+    if (state.ui.openBoxFor !== trip.id) {
+      state.ui.openBoxFor = trip.id;
+      state.ui.openBox = firstOpenBox(trip.id);
+    }
     const planObj = plan();
     const idx = state.trips.indexOf(trip);
     const assembled = planObj.assembled[idx];
@@ -486,24 +527,55 @@
       </div>`;
     }).join('') : '';
 
+    // Flights — Google-Flights-style selectable options; exactly one is
+    // selected and its price drives the Flight line + total.
+    const fmtDay = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+    const legLine = (leg, dateIso, tag) => `${tag} ${fmtDay(dateIso)} · ${leg.depart} → ${leg.arrive}${leg.arriveNextDay ? ` +${leg.arriveNextDay}` : ''} · ${leg.duration} · ${E.stopsLabel(leg)}`;
+    let flightsSection = '';
+    if (result.priced && dest) {
+      const gfUrl = E.googleFlightsUrl((state.settings.origin || 'BOS').toUpperCase(), dest, trip.startDate, trip.endDate);
+      const fareFilter = state.ui.flightFare || 'all';
+      const opts = (result.flightOptions || []).filter((o) => fareFilter === 'all' || o.fareClass === fareFilter);
+      const rows = opts.map((o) => `
+        <button class="optrow ${o.selected ? 'sel' : ''}" onclick="TP.setFlight('${trip.id}','${o.id}')">
+          <span>${o.selected ? '●' : '○'} <strong>${esc(o.airline)}</strong> ${o.tags.map((tg) => `<span class="badge ${o.selected ? '' : 'fill'}">${tg === 'best' ? 'Best' : 'Cheapest'}</span>`).join(' ')}<br>
+          <span class="hint">${esc(legLine(o.outbound, trip.startDate, 'Out'))}<br>${esc(legLine(o.inbound, trip.endDate, 'Back'))}<br>${o.fareClass === 'flex' ? 'Flex fare' : 'Basic fare'}${o.bagIncluded ? ' · 1 checked bag included' : ''}</span></span>
+          <span class="price"><strong>${money(o.amount)}</strong></span>
+        </button>`).join('');
+      flightsSection = `
+      <p class="faint" style="font-size:13px">Researched snapshot, checked ${esc(result.checkedAt)} — times are representative for the route; live times vary by date. Pick one flight: it sets the Flight line and the trip total.</p>
+      <div class="chips">${[['all', 'All'], ['basic', 'Basic'], ['flex', 'Flex']].map(([v, l]) => `<button class="chip ${fareFilter === v ? 'sel' : ''}" onclick="TP.setFlightFare('${v}')">${l}</button>`).join('')}</div>
+      ${rows || '<p class="faint">No flights in this fare class for this route.</p>'}
+      <p><a href="${esc(gfUrl)}" target="_blank" rel="noopener">See live flights on Google Flights ↗</a></p>`;
+    }
+
     const gearRows = result.priced && result.gearOptions.length ? result.gearOptions.map((g) => `
       <button class="optrow ${result.chosenGearKey === g.key ? 'sel' : ''}" onclick="TP.setGear('${trip.id}','${g.key}')">
         <span>${result.chosenGearKey === g.key ? '●' : '○'} ${esc(g.label)}<br><span class="hint">${esc(g.detail)}</span></span>
         <span class="price">${money(g.amount)}${g.estimate ? ' ~' : ''}</span>
       </button>`).join('') : '<p class="faint">Gear pricing arrives with destination pricing.</p>';
 
-    const warnings = planObj.warnings[idx] || [];
-    const breakdown = assembled.priced ? `
-      ${assembled.lines.map((l) => `<div class="row"><span class="lbl">${esc(l.label)}<small style="display:block">${esc(l.detail)}</small>${l.linkUrl ? `<a href="${esc(l.linkUrl)}" target="_blank" rel="noopener" style="font-size:13px">${esc(l.linkLabel || 'Open')} ↗</a>` : ''}</span><span class="val price">${money(l.amount)}${l.estimate ? ' ~' : ''}</span></div>`).join('')}
-      <p class="faint" style="font-size:13px">Prices: ${esc(result.sourceLabel)}, checked ${esc(result.checkedAt)}. ~ = estimate.</p>`
-      : `<p>${esc((result.notes || [])[0] || "Not priced yet — this trip type or place isn't in the researched dataset.")}</p>`;
+    // ── Box summaries (one line each, shown when collapsed) ──
+    const basicsSummary = `${destName(trip)} · ${trip.startDate} – ${trip.endDate} · ${trip.skiDays} ski day${trip.skiDays === 1 ? '' : 's'}`;
+    const selFlight = (result.flightOptions || []).find((o) => o.selected);
+    const flightSummary = selFlight
+      ? `✈ ${selFlight.airline} · ${selFlight.outbound.depart} → ${selFlight.outbound.arrive} · ${E.stopsLabel(selFlight.outbound)} · ${money(selFlight.amount)}`
+      : 'Not priced yet';
+    const primaryHotel = result.hotelOptions.find((h) => h.key === trip.hotelTier) || result.hotelOptions[0];
+    const hotelSummary = result.priced && primaryHotel
+      ? `${primaryHotel.label}${trip.hotelSelections.length > 1 ? ` +${trip.hotelSelections.length - 1} more` : ''} · ${money(primaryHotel.amount)}`
+      : 'Not priced yet';
+    const liftLine = assembled.lines.find((l) => l.key === 'lift');
+    const liftSummary = liftLine ? `${liftLine.label} · ${money(liftLine.amount)}${liftLine.estimate ? ' ~' : ''}` : 'Not priced yet';
+    const chosenGear = result.gearOptions.find((g) => g.key === result.chosenGearKey);
+    const gearSummary = chosenGear ? `${chosenGear.label} · ${money(chosenGear.amount)}` : 'Not priced yet';
 
-    return `<div class="wrap">
-      <button class="btn-tertiary" onclick="TP.go('trips')">‹ Your trips</button>
-      ${dest ? photoHTML(dest, true) + '</div>' : ''}
-      <h1>${esc(tripTitle(trip))}</h1>
-      <h2>Phase</h2>${phaseSeg}
-      <h2>Basics</h2>
+    // ── Box bodies ──
+    const boxButtons = (box, skippable) => `<div class="toolbar" style="margin-top:12px">
+      <button class="btn-secondary btn-inline" onclick="TP.doneBox('${box}')">Done</button>
+      ${skippable ? `<button class="btn-tertiary" onclick="TP.skipBox('${box}')">Skip</button>` : ''}
+    </div>`;
+    const basicsBody = `
       <label class="flabel" for="ed-title">Trip name (optional)</label>
       <input class="field" id="ed-title" type="text" value="${esc(trip.title)}" placeholder="${esc(destName(trip))}" oninput="TP.setField('${trip.id}','title',this.value)">
       <label class="flabel" for="ed-type">Trip type</label>
@@ -519,29 +591,62 @@
         <span style="flex:1"><label class="flabel" for="ed-start">From</label><input class="field" id="ed-start" type="date" value="${trip.startDate}" onchange="TP.setDates('${trip.id}', this.value, '${trip.endDate}')"></span>
         <span style="flex:1"><label class="flabel" for="ed-end">To</label><input class="field" id="ed-end" type="date" value="${trip.endDate}" onchange="TP.setDates('${trip.id}', '${trip.startDate}', this.value)"></span>
       </div>
-      <h2>Ski days &amp; fare</h2>
       <div class="toolbar"><span class="dim">Ski days</span><span class="spacer"></span>
         <button class="chip" onclick="TP.setDays('${trip.id}', ${Math.max(1, trip.skiDays - 1)})" aria-label="Fewer ski days">−</button>
         <strong>${trip.skiDays} day${trip.skiDays === 1 ? '' : 's'}</strong>
         <button class="chip" onclick="TP.setDays('${trip.id}', ${Math.min(10, trip.skiDays + 1)})" aria-label="More ski days">+</button></div>
       <p class="faint" style="font-size:13px">${trip.skiDays >= 3 && trip.skiDays <= 4 ? 'Researched range — figures from the Nov 13, 2026 dataset.' : 'Extended estimate — outside the researched 3–4 day range, extended per day and marked ~.'}</p>
-      <div class="chips">
-        <button class="chip ${trip.fareClass === 'basic' ? 'sel' : ''}" onclick="TP.setField('${trip.id}','fareClass','basic')">Basic</button>
-        <button class="chip ${trip.fareClass === 'flex' ? 'sel' : ''}" onclick="TP.setField('${trip.id}','fareClass','flex')">Flex</button>
-      </div>
-      <h2>Style</h2>
-      <p class="faint" style="font-size:13px">A style preset sets fare class, hotel pick and gear at once — then tune anything.</p>
+      <p class="faint" style="font-size:13px">Style preset — sets fare class, hotel pick and gear at once; those boxes reopen below so you can review each pick.</p>
       <div class="chips">${styleChips}</div>
       <p class="dim">${esc(styleBlurb)}</p>
-      ${result.priced ? `<h2>Hotels — pick a few</h2>
+      ${boxButtons('basics', false)}`;
+    const flightsBody = `
+      ${flightsSection || '<p class="faint">Flights aren\'t priced for this trip in the researched dataset.</p>'}
+      ${boxButtons('flights', true)}`;
+    const hotelsBody = result.priced ? `
       <p class="faint" style="font-size:13px">The Primary drives the trip total. Price checked Nov 13, 2026 — Expedia's live price may have moved.</p>
       <div class="toolbar"><div class="chips scroll">${tagChips}</div>
       <select class="field" style="width:auto;margin:0" onchange="TP.setPref('hotelSort', this.value)" aria-label="Sort hotels">
         <option value="price" ${state.prefs.hotelSort === 'price' ? 'selected' : ''}>Sort: Price</option>
         <option value="name" ${state.prefs.hotelSort === 'name' ? 'selected' : ''}>Sort: Name</option>
       </select></div>
-      ${hotelRows}` : ''}
-      <h2>Gear</h2>${gearRows}
+      ${hotelRows}
+      ${boxButtons('hotels', false)}`
+      : `<p class="faint">Hotel pricing arrives with destination pricing.</p>
+      <p style="margin-top:10px"><button class="btn-tertiary" onclick="TP.skipBox('hotels')">Skip</button></p>`;
+    let liftBody = '';
+    if (result.priced) {
+      const pass = planObj.pass;
+      liftBody = `
+      ${liftLine ? `<div class="row"><span class="lbl">${esc(liftLine.label)}<small style="display:block">${esc(liftLine.detail)}</small></span><span class="val price">${money(liftLine.amount)}${liftLine.estimate ? ' ~' : ''}</span></div>` : '<p class="faint">No lift line for this trip.</p>'}
+      ${pass && pass.program ? `
+        <p class="faint" style="font-size:13px">How the pass maths lands across your trips — the cheapest option is applied automatically:</p>
+        ${pass.options.map((o) => `<div class="row"><span class="lbl">${esc(o.label)} ${o.recommended ? '<span class="badge fill">Recommended</span>' : ''}<small style="display:block">${esc(o.detail)}</small></span><span class="val price">${money(o.amount)}${o.estimate ? ' ~' : ''}</span></div>`).join('')}
+        <p class="note-box">${esc(pass.note)}</p>
+        <p><a href="${esc(pass.linkUrl)}" target="_blank" rel="noopener">${esc(pass.linkLabel || 'Epic Pass')} ↗</a></p>` : ''}`;
+    } else {
+      liftBody = '<p class="faint">Lift pricing arrives with destination pricing.</p>';
+    }
+    liftBody += boxButtons('lift', true);
+    const gearBody = `${gearRows}
+      ${boxButtons('gear', true)}`;
+
+    const warnings = planObj.warnings[idx] || [];
+    const breakdown = assembled.priced ? `
+      ${assembled.lines.map((l) => `<div class="row"><span class="lbl">${esc(l.label)}<small style="display:block">${esc(l.detail)}</small>${l.linkUrl ? `<a href="${esc(l.linkUrl)}" target="_blank" rel="noopener" style="font-size:13px">${esc(l.linkLabel || 'Open')} ↗</a>` : ''}</span><span class="val price">${money(l.amount)}${l.estimate ? ' ~' : ''}</span></div>`).join('')}
+      <p class="faint" style="font-size:13px">Prices: ${esc(result.sourceLabel)}, checked ${esc(result.checkedAt)}. ~ = estimate.</p>`
+      : `<p>${esc((result.notes || [])[0] || "Not priced yet — this trip type or place isn't in the researched dataset.")}</p>`;
+
+    return `<div class="wrap">
+      <button class="btn-tertiary" onclick="TP.go('trips')">‹ Your trips</button>
+      ${dest ? photoHTML(dest, true) + '</div>' : ''}
+      <h1>${esc(tripTitle(trip))}</h1>
+      <h2>Phase</h2>${phaseSeg}
+      ${boxHTML(trip, 'basics', basicsSummary, basicsBody)}
+      ${boxHTML(trip, 'flights', flightSummary, flightsBody)}
+      ${boxHTML(trip, 'hotels', hotelSummary, hotelsBody)}
+      ${boxHTML(trip, 'lift', liftSummary, liftBody)}
+      ${boxHTML(trip, 'gear', gearSummary, gearBody)}
       ${(warnings.length || result.notes.length) ? `<h2>Good to know</h2>
         ${warnings.map((w) => `<p>⚠ ${esc(w)}</p>`).join('')}
         ${result.notes.map((n) => `<p>· ${esc(n)}</p>`).join('')}` : ''}
@@ -891,36 +996,71 @@
         state.ui.tab = 'trips';
       });
     },
+    // Editor boxes (accordion flow)
+    toggleBox(box) { state.ui.openBox = state.ui.openBox === box ? null : box; render(); },
+    doneBox(box) {
+      mutate(() => {
+        const t = tripById(state.ui.editorTripId);
+        if (!t) return;
+        setBoxStatus(t.id, box, 'picked');
+        state.ui.openBox = firstOpenBox(t.id);
+      });
+    },
+    skipBox(box) {
+      mutate(() => {
+        const t = tripById(state.ui.editorTripId);
+        if (!t) return;
+        setBoxStatus(t.id, box, 'skipped');
+        state.ui.openBox = firstOpenBox(t.id);
+      });
+    },
     // Editor
     setField(id, key, value) {
       // Text fields never re-render (focus would be lost mid-typing);
       // fare class is price-affecting so it re-renders.
       const trip = tripById(id);
       trip[key] = value;
+      if (key === 'fareClass') trip.flightOptionId = null; // re-select that class's anchor flight
       save();
       if (key === 'fareClass') render();
     },
-    setTripType(id, typeId) { mutate(() => { const t = tripById(id); t.tripType = typeId; t.custom = false; const d = catalog.destinations.find((x) => x.tripTypeID === typeId); if (d) t.destination = d.id; }); },
+    setFlight(id, optionId) {
+      mutate(() => {
+        const t = tripById(id);
+        t.flightOptionId = optionId;
+        // Keep the trip's fare class in step with the picked flight, so the
+        // fare chips, styles and breakdown all describe the same ticket.
+        const res = E.price(catalog, requestFor(t));
+        const opt = (res.flightOptions || []).find((o) => o.id === optionId);
+        if (opt) t.fareClass = opt.fareClass;
+        setBoxStatus(id, 'flights', 'picked');
+        state.ui.openBox = firstOpenBox(id);
+      });
+    },
+    setFlightFare(v) { state.ui.flightFare = v; render(); },
+    setTripType(id, typeId) { mutate(() => { const t = tripById(id); t.tripType = typeId; t.custom = false; const d = catalog.destinations.find((x) => x.tripTypeID === typeId); if (d) t.destination = d.id; clearBoxStatuses(id, ['flights', 'hotels', 'lift', 'gear']); }); },
     setDestination(id, value) {
       mutate(() => {
         const t = tripById(id);
         const isCustom = state.settings.customDestinations.some((c) => c.name === value);
         t.custom = isCustom; t.destination = value;
         if (!isCustom) { const d = destById(value); if (d) t.tripType = d.tripTypeID; }
+        clearBoxStatuses(id, ['flights', 'hotels', 'lift', 'gear']);
       });
     },
-    setWindow(id, w) { mutate(() => { const t = tripById(id); t.window = w; if (w === 'dec') { t.startDate = '2026-12-19'; t.endDate = '2026-12-23'; } if (w === 'jan') { t.startDate = '2027-01-09'; t.endDate = '2027-01-13'; } }); },
-    setDates(id, start, end) { mutate(() => { const t = tripById(id); t.startDate = start; t.endDate = end; t.window = 'custom'; }); },
-    setDays(id, days) { mutate(() => { tripById(id).skiDays = Math.min(10, Math.max(1, days)); }); },
+    setWindow(id, w) { mutate(() => { const t = tripById(id); t.window = w; if (w === 'dec') { t.startDate = '2026-12-19'; t.endDate = '2026-12-23'; } if (w === 'jan') { t.startDate = '2027-01-09'; t.endDate = '2027-01-13'; } clearBoxStatuses(id, ['flights', 'hotels', 'lift', 'gear']); }); },
+    setDates(id, start, end) { mutate(() => { const t = tripById(id); t.startDate = start; t.endDate = end; t.window = 'custom'; clearBoxStatuses(id, ['flights', 'hotels', 'lift', 'gear']); }); },
+    setDays(id, days) { mutate(() => { tripById(id).skiDays = Math.min(10, Math.max(1, days)); clearBoxStatuses(id, ['lift', 'gear']); }); },
     applyStyle(id, styleId) {
       mutate(() => {
         const t = tripById(id);
         const dest = t.custom ? null : destById(t.destination);
         const styled = E.applyStyle(t, styleId, dest ? dest.socialTier : 'comfort', t.gear);
         Object.assign(t, styled);
+        clearBoxStatuses(id, ['flights', 'hotels', 'gear']);
       });
     },
-    setGear(id, gear) { mutate(() => { tripById(id).gear = gear; }); },
+    setGear(id, gear) { mutate(() => { tripById(id).gear = gear; setBoxStatus(id, 'gear', 'picked'); state.ui.openBox = firstOpenBox(id); }); },
     setHotelTag(tag) { state.ui.hotelTag = tag; render(); },
     toggleHotel(id, key) {
       mutate(() => {
@@ -935,7 +1075,7 @@
         }
       });
     },
-    makePrimary(id, key) { mutate(() => { tripById(id).hotelTier = key; }); },
+    makePrimary(id, key) { mutate(() => { tripById(id).hotelTier = key; setBoxStatus(id, 'hotels', 'picked'); state.ui.openBox = firstOpenBox(id); }); },
     // Compare
     toggleCompare(tripId, tier) {
       mutate(() => {

@@ -15,8 +15,27 @@ struct TripEditorView: View {
     @Query private var settingsRows: [PlannerSettings]
     @Query private var picks: [ComparePick]
     @State private var hotelTagFilter = "All"
+    @State private var flightFareFilter = "all"
     @State private var showTypeSheet = false
     @State private var showDestinationSheet = false
+    @State private var openBox: EditorBox?
+    @State private var boxDone: [String: String] = [:]
+    @State private var boxesInitialised = false
+
+    /// The editor's picking boxes, in flow order. Transfers are a single
+    /// researched line, not a choice, so they get no box.
+    private enum EditorBox: String, CaseIterable {
+        case basics, flights, hotels, lift, gear
+        var title: String {
+            switch self {
+            case .basics: return "Basics"
+            case .flights: return "Flights"
+            case .hotels: return "Accommodation"
+            case .lift: return "Lift / Pass"
+            case .gear: return "Gear"
+            }
+        }
+    }
 
     private var catalog: Catalog { pricing.catalog }
     private var plan: PlanPricing {
@@ -34,11 +53,11 @@ struct TripEditorView: View {
                 DestinationPhoto(destination: destination, height: 130)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                 phaseSection
-                basicsSection
-                skiSection
-                styleSection
-                hotelsSection
-                gearSection
+                editorBox(.basics, summary: basicsSummary) { basicsBoxContent }
+                editorBox(.flights, summary: flightsSummary) { flightsBoxContent }
+                editorBox(.hotels, summary: hotelsSummary) { hotelsBoxContent }
+                editorBox(.lift, summary: liftSummary) { liftBoxContent }
+                editorBox(.gear, summary: gearSummary) { gearBoxContent }
                 notesSection
                 breakdownSection
                 Spacer(minLength: 90)
@@ -72,12 +91,134 @@ struct TripEditorView: View {
         }
         .sheet(isPresented: $showTypeSheet) { typeSheet }
         .sheet(isPresented: $showDestinationSheet) { destinationSheet }
+        .onAppear { initialiseBoxes() }
     }
 
     private func save() {
         trip.touch()
         Seeding.refreshVariantTags(for: trip, catalog: catalog)
         try? context.save()
+    }
+
+    // MARK: Editor boxes (accordion flow)
+    //
+    // A box is DECIDED only by an explicit user action in this flow: a pick
+    // (flight row, Make primary, gear row), Done (confirm — including
+    // confirming a default), or Skip. Priced defaults are NOT decisions:
+    // the anchor flight (flightOptionID empty) and gear "auto" leave their
+    // boxes undecided, so they load open. Decisions persist per trip in
+    // ViewPrefs (keyed by trip id); on load a box opens unless decided.
+
+    private func initialiseBoxes() {
+        guard !boxesInitialised else { return }
+        boxesInitialised = true
+        for box in EditorBox.allCases {
+            if let status = prefs.boxStatus(tripID: trip.id, box: box.rawValue) {
+                boxDone[box.rawValue] = status
+            }
+        }
+        openBox = EditorBox.allCases.first { boxDone[$0.rawValue] == nil }
+    }
+
+    private func toggleBox(_ box: EditorBox) {
+        openBox = openBox == box ? nil : box
+    }
+
+    /// Record a box as decided ("picked" = picked or confirmed, or
+    /// "skipped"), collapse it, and open the next undecided box.
+    /// Display state only — never affects pricing.
+    private func markBox(_ box: EditorBox, status: String) {
+        boxDone[box.rawValue] = status
+        prefs.setBoxStatus(tripID: trip.id, box: box.rawValue, status: status)
+        openBox = EditorBox.allCases.first { boxDone[$0.rawValue] == nil }
+    }
+
+    /// Changing the inputs a box depends on reopens it (decision cleared).
+    private func clearBoxes(_ boxes: [EditorBox]) {
+        for box in boxes {
+            boxDone[box.rawValue] = nil
+            prefs.setBoxStatus(tripID: trip.id, box: box.rawValue, status: nil)
+        }
+    }
+
+    private func editorBox<Content: View>(_ box: EditorBox, summary: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button { toggleBox(box) } label: {
+                HStack(spacing: 10) {
+                    Text(box.title).font(.headline).foregroundStyle(TP.white)
+                    Text(summary)
+                        .font(.caption).foregroundStyle(TP.faint)
+                        .lineLimit(1)
+                    Spacer()
+                    if boxDone[box.rawValue] == "picked" {
+                        Badge(label: "✓ Done", filled: true)
+                    } else if boxDone[box.rawValue] == "skipped" {
+                        Badge(label: "Skipped", filled: false)
+                    }
+                    Image(systemName: openBox == box ? "chevron.up" : "chevron.down")
+                        .font(.caption).foregroundStyle(TP.faint)
+                }
+                .frame(minHeight: 52)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(box.title). \(summary)")
+            if openBox == box {
+                content()
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(TP.separator, lineWidth: 1))
+    }
+
+    private func boxButtons(_ box: EditorBox, skippable: Bool) -> some View {
+        HStack(spacing: 18) {
+            Button("Done") { markBox(box, status: "picked") }
+                .font(.subheadline.bold())
+                .padding(.horizontal, 18)
+                .frame(minHeight: 44)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(TP.white, lineWidth: 1.5))
+                .buttonStyle(.plain)
+            if skippable {
+                Button("Skip") { markBox(box, status: "skipped") }
+                    .font(.subheadline).underline()
+                    .frame(minHeight: 44)
+                    .buttonStyle(.plain)
+            }
+            Spacer()
+        }
+        .padding(.top, 6)
+    }
+
+    // MARK: Box summaries (one line each, shown when collapsed)
+
+    private var basicsSummary: String {
+        "\(destName) · \(PricingEngine.dateString(trip.startDate)) – \(PricingEngine.dateString(trip.endDate)) · \(trip.activityDays) ski day\(trip.activityDays == 1 ? "" : "s")"
+    }
+
+    private var flightsSummary: String {
+        tripPricing?.flightSummary ?? "Not priced yet"
+    }
+
+    private var hotelsSummary: String {
+        guard let result = tripPricing?.result, let primary = trip.primaryVariant,
+              let option = result.hotelOptions.first(where: { $0.key == primary.tier.rawValue })
+        else { return "Not priced yet" }
+        let extra = trip.selectedVariants.count > 1 ? " +\(trip.selectedVariants.count - 1) more" : ""
+        return "\(option.label)\(extra) · \(TP.money(option.amount))"
+    }
+
+    private var liftSummary: String {
+        guard let line = tripPricing?.lines.first(where: { $0.key == "lift" }) else { return "Not priced yet" }
+        return "\(line.label) · \(TP.money(line.amount))\(line.estimate ? " ~" : "")"
+    }
+
+    private var gearSummary: String {
+        guard let result = tripPricing?.result, let key = result.chosenGearKey,
+              let gear = result.gearOptions.first(where: { $0.key == key })
+        else { return "Not priced yet" }
+        return "\(gear.label) · \(TP.money(gear.amount))"
     }
 
     // MARK: Phase
@@ -99,11 +240,10 @@ struct TripEditorView: View {
         Binding(get: { trip.phase }, set: { trip.phase = $0; save() })
     }
 
-    // MARK: Basics
+    // MARK: Basics box (fields + ski days + style preset)
 
-    private var basicsSection: some View {
+    private var basicsBoxContent: some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionHeader(title: "Basics")
             TextField("Trip name (optional)", text: $trip.title)
                 .textFieldStyle(.roundedBorder)
                 .frame(minHeight: 48)
@@ -127,14 +267,44 @@ struct TripEditorView: View {
                 .frame(minHeight: 48)
             DatePicker("To", selection: endBinding, displayedComponents: .date)
                 .frame(minHeight: 48)
+            Stepper(value: daysBinding, in: 1...10) {
+                HStack {
+                    Text("Ski days").foregroundStyle(TP.dim)
+                    Spacer()
+                    Text("\(trip.activityDays) day\(trip.activityDays == 1 ? "" : "s")").bold()
+                }
+            }
+            .frame(minHeight: 48)
+            Text((3...4).contains(trip.activityDays)
+                 ? "Researched range — figures from the Nov 13, 2026 dataset."
+                 : "Extended estimate — outside the researched 3–4 day range, extended per day and marked ~.")
+                .font(.caption).foregroundStyle(TP.faint)
+            Text("Style preset — sets fare class, hotel pick and gear at once; those boxes reopen below so you can review each pick.")
+                .font(.caption).foregroundStyle(TP.faint)
+                .padding(.top, 6)
+            FlowLayout(spacing: 8) {
+                ForEach(catalog.styles) { style in
+                    Chip(label: style.label, selected: trip.styleRaw == style.id) {
+                        applyStyle(TripStyle(rawValue: style.id) ?? .balanced)
+                    }
+                }
+            }
+            if let style = catalog.style(id: trip.styleRaw) {
+                Text(style.blurb).font(.caption).foregroundStyle(TP.dim)
+            }
+            boxButtons(.basics, skippable: false)
         }
     }
 
+    private var daysBinding: Binding<Int> {
+        Binding(get: { trip.activityDays }, set: { trip.activityDays = $0; clearBoxes([.lift, .gear]); save() })
+    }
+
     private var startBinding: Binding<Date> {
-        Binding(get: { trip.startDate }, set: { trip.startDate = $0; trip.windowSelection = .custom; save() })
+        Binding(get: { trip.startDate }, set: { trip.startDate = $0; trip.windowSelection = .custom; clearBoxes([.flights, .hotels, .lift, .gear]); save() })
     }
     private var endBinding: Binding<Date> {
-        Binding(get: { trip.endDate }, set: { trip.endDate = $0; trip.windowSelection = .custom; save() })
+        Binding(get: { trip.endDate }, set: { trip.endDate = $0; trip.windowSelection = .custom; clearBoxes([.flights, .hotels, .lift, .gear]); save() })
     }
 
     private func applyWindow(_ w: WindowSelection) {
@@ -145,6 +315,7 @@ struct TripEditorView: View {
             trip.startDate = start
             trip.endDate = end
         }
+        clearBoxes([.flights, .hotels, .lift, .gear])
         save()
     }
 
@@ -162,57 +333,99 @@ struct TripEditorView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: Ski days & fare
+    // MARK: Flights box
+    //
+    // Fare class lives here now (there is no separate fare picker): the
+    // filter chips narrow the list and picking a flight syncs the class.
 
-    private var skiSection: some View {
+    private var flightsBoxContent: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Ski days & fare")
-            Stepper(value: daysBinding, in: 1...10) {
-                HStack {
-                    Text("Ski days").foregroundStyle(TP.dim)
-                    Spacer()
-                    Text("\(trip.activityDays) day\(trip.activityDays == 1 ? "" : "s")").bold()
-                }
-            }
-            .frame(minHeight: 48)
-            Text((3...4).contains(trip.activityDays)
-                 ? "Researched range — figures from the Nov 13, 2026 dataset."
-                 : "Extended estimate — outside the researched 3–4 day range, extended per day and marked ~.")
-                .font(.caption).foregroundStyle(TP.faint)
-            Picker("Fare class", selection: fareBinding) {
-                Text("Basic").tag(FareClass.basic)
-                Text("Flex").tag(FareClass.flex)
-            }
-            .pickerStyle(.segmented)
-        }
-    }
-
-    private var daysBinding: Binding<Int> {
-        Binding(get: { trip.activityDays }, set: { trip.activityDays = $0; save() })
-    }
-    private var fareBinding: Binding<FareClass> {
-        Binding(get: { trip.fareClass }, set: { trip.fareClass = $0; save() })
-    }
-
-    // MARK: Style
-
-    private var styleSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Style")
-            Text("A style preset sets fare class, hotel pick and gear at once — then tune anything.")
-                .font(.caption).foregroundStyle(TP.faint)
-            FlowLayout(spacing: 8) {
-                ForEach(catalog.styles) { style in
-                    Chip(label: style.label, selected: trip.styleRaw == style.id) {
-                        applyStyle(TripStyle(rawValue: style.id) ?? .balanced)
+            if let result = tripPricing?.result, !result.flightOptions.isEmpty {
+                Text("Researched snapshot, checked \(result.checkedAt) — times are representative for the route; live times vary by date. Pick one flight: it sets the Flight line and the trip total.")
+                    .font(.caption).foregroundStyle(TP.faint)
+                HStack(spacing: 8) {
+                    ForEach([("all", "All"), ("basic", "Basic"), ("flex", "Flex")], id: \.0) { pair in
+                        Chip(label: pair.1, selected: flightFareFilter == pair.0) { flightFareFilter = pair.0 }
                     }
                 }
+                ForEach(result.flightOptions.filter { flightFareFilter == "all" || $0.fareClass.rawValue == flightFareFilter }) { option in
+                    flightRow(option)
+                }
+                googleFlightsLink
+            } else {
+                Text("Flights aren't priced for departures from \((settingsRows.first?.origin ?? "BOS").uppercased()) in the researched dataset.")
+                    .font(.subheadline).foregroundStyle(TP.faint)
+                googleFlightsLink
             }
-            if let style = catalog.style(id: trip.styleRaw) {
-                Text(style.blurb).font(.caption).foregroundStyle(TP.dim)
-            }
+            boxButtons(.flights, skippable: true)
         }
     }
+
+    @ViewBuilder
+    private var googleFlightsLink: some View {
+        if let dest = destination,
+           let url = URL(string: PricingEngine.googleFlightsUrl(
+               origin: (settingsRows.first?.origin ?? "BOS").uppercased(),
+               dest: dest,
+               start: PricingEngine.dateString(trip.startDate),
+               end: PricingEngine.dateString(trip.endDate))) {
+            Link("See live flights on Google Flights ↗", destination: url)
+                .font(.subheadline).underline().frame(minHeight: 44)
+        }
+    }
+
+    private func flightRow(_ option: FlightOptionInfo) -> some View {
+        Button {
+            trip.flightOptionID = option.id
+            trip.fareClass = option.fareClass
+            save()
+            markBox(.flights, status: "picked")
+        } label: {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: option.selected ? "checkmark.circle.fill" : "circle")
+                    .frame(minHeight: 44)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(option.airline).font(.headline)
+                        ForEach(option.tags, id: \.self) { tag in
+                            Badge(label: tag == "best" ? "Best" : "Cheapest", filled: true)
+                        }
+                    }
+                    Text("Out \(legText(option.outbound, date: trip.startDate))")
+                        .font(.caption)
+                        .foregroundStyle(option.selected ? TP.black.opacity(0.65) : TP.faint)
+                    Text("Back \(legText(option.inbound, date: trip.endDate))")
+                        .font(.caption)
+                        .foregroundStyle(option.selected ? TP.black.opacity(0.65) : TP.faint)
+                    Text("\(option.fareClass.label) fare\(option.bagIncluded ? " · 1 checked bag included" : "")")
+                        .font(.caption)
+                        .foregroundStyle(option.selected ? TP.black.opacity(0.65) : TP.faint)
+                }
+                Spacer()
+                Text(TP.money(option.amount))
+                    .font(.headline)
+                    .monospacedDigit()
+            }
+            .padding(12)
+            .frame(minHeight: 56)
+            .background(option.selected ? TP.white : Color.clear)
+            .foregroundStyle(option.selected ? TP.black : TP.white)
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(option.selected ? TP.white : TP.hairline, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(option.airline). \(option.detail). \(TP.money(option.amount))")
+    }
+
+    private func legText(_ leg: FlightLeg, date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "EEE, MMM d"
+        return "\(f.string(from: date)) · \(leg.depart) → \(leg.arrive)\(leg.arriveNextDay > 0 ? " +\(leg.arriveNextDay)" : "") · \(leg.duration) · \(leg.stopsLabel)"
+    }
+
+    // MARK: Style (lives inside the Basics box)
 
     private func applyStyle(_ style: TripStyle) {
         let draft = Seeding.TripDraft(
@@ -226,11 +439,15 @@ struct TripEditorView: View {
         let next = Seeding.applyStyle(draft, style: style, socialTier: destination?.socialTier ?? .comfort, gearDefault: gearDefault)
         trip.style = next.style
         trip.fareClass = next.fareClass
+        trip.flightOptionID = ""  // preset fare class re-selects its anchor flight
         trip.gear = next.gear
         for variant in trip.hotelVariants {
             variant.isSelected = next.selectedTiers.contains(variant.tier)
             variant.isPrimary = variant.tier == next.primaryTier
         }
+        // A preset changes fare, hotel and gear programmatically — those
+        // are not user decisions, so their boxes reopen for review.
+        clearBoxes([.flights, .hotels, .gear])
         save()
     }
 
@@ -242,9 +459,8 @@ struct TripEditorView: View {
         return ["All"] + tags.sorted()
     }
 
-    private var hotelsSection: some View {
+    private var hotelsBoxContent: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Hotels — pick a few")
             Text("The Primary drives the trip total. Price checked Nov 13, 2026 — Expedia's live price may have moved.")
                 .font(.caption).foregroundStyle(TP.faint)
             ScrollView(.horizontal, showsIndicators: false) {
@@ -268,6 +484,7 @@ struct TripEditorView: View {
             ForEach(sortedVariants(), id: \.id) { variant in
                 hotelRow(variant)
             }
+            boxButtons(.hotels, skippable: false)
         }
     }
 
@@ -374,6 +591,7 @@ struct TripEditorView: View {
         for v in trip.hotelVariants { v.isPrimary = v.id == variant.id }
         if !variant.isSelected { variant.isSelected = true }
         save()
+        markBox(.hotels, status: "picked")
     }
 
     @ViewBuilder
@@ -394,17 +612,66 @@ struct TripEditorView: View {
         }
     }
 
-    // MARK: Gear
+    // MARK: Lift / Pass box (this trip's lift line + the plan's pass options, read-only)
 
-    private var gearSection: some View {
+    private var liftBoxContent: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Gear")
+            if let pricing = tripPricing, pricing.result.priced {
+                if let line = pricing.lines.first(where: { $0.key == "lift" }) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(line.label).font(.body)
+                            Text(line.detail).font(.caption).foregroundStyle(TP.faint)
+                        }
+                        Spacer()
+                        Text(TP.money(line.amount) + (line.estimate ? " ~" : ""))
+                            .font(.body.bold()).monospacedDigit()
+                    }
+                }
+                if plan.pass.program != nil {
+                    Text("How the pass maths lands across your trips — the cheapest option is applied automatically:")
+                        .font(.caption).foregroundStyle(TP.faint)
+                    ForEach(plan.pass.options, id: \.key) { option in
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 8) {
+                                    Text(option.label).font(.body)
+                                    if option.recommended {
+                                        Badge(label: "Recommended", filled: true)
+                                    }
+                                }
+                                Text(option.detail).font(.caption).foregroundStyle(TP.faint)
+                            }
+                            Spacer()
+                            Text(TP.money(option.amount) + (option.estimate ? " ~" : ""))
+                                .font(.body.bold()).monospacedDigit()
+                        }
+                    }
+                    Text(plan.pass.note).font(.caption).foregroundStyle(TP.dim)
+                    if let urlString = plan.pass.linkUrl, let url = URL(string: urlString) {
+                        Link(plan.pass.linkLabel ?? "Epic Pass", destination: url)
+                            .font(.subheadline).underline().frame(minHeight: 44)
+                    }
+                }
+            } else {
+                Text("Lift pricing arrives with destination pricing.")
+                    .font(.subheadline).foregroundStyle(TP.faint)
+            }
+            boxButtons(.lift, skippable: true)
+        }
+    }
+
+    // MARK: Gear box
+
+    private var gearBoxContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
             if let result = tripPricing?.result, !result.gearOptions.isEmpty {
                 ForEach(result.gearOptions) { option in
                     let isChosen = result.chosenGearKey == option.key
                     Button {
                         trip.gear = GearChoice(rawValue: option.key) ?? .auto
                         save()
+                        markBox(.gear, status: "picked")
                     } label: {
                         HStack {
                             Image(systemName: isChosen ? "checkmark.circle.fill" : "circle")
@@ -431,6 +698,7 @@ struct TripEditorView: View {
                 Text("Gear pricing arrives with destination pricing.")
                     .font(.subheadline).foregroundStyle(TP.faint)
             }
+            boxButtons(.gear, skippable: true)
         }
     }
 
@@ -492,11 +760,12 @@ struct TripEditorView: View {
     private var typeSheet: some View {
         SearchableSheet(
             title: "Trip type",
-            items: catalog.tripTypes.map { (id: $0.id, label: $0.label, detail: $0.status == "soon" ? "Coming soon — saves, no prices yet" : $0.blurb) },
+            items: catalog.tripTypes.map { (id: $0.id, label: $0.label, detail: $0.blurb) },
             selectedID: trip.tripTypeID
         ) { id in
             trip.tripTypeID = id
             showTypeSheet = false
+            clearBoxes([.flights, .hotels, .lift, .gear])
             save()
         }
     }
@@ -511,6 +780,7 @@ struct TripEditorView: View {
             trip.destinationID = id
             trip.customDestinationName = nil
             showDestinationSheet = false
+            clearBoxes([.flights, .hotels, .lift, .gear])
             save()
         }
     }

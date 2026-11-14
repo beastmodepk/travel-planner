@@ -36,6 +36,22 @@ final class ViewPrefs {
         galleryType = defaults.string(forKey: Keys.galleryType) ?? "all"
         hotelSort = HotelSort(rawValue: defaults.string(forKey: Keys.hotelSort) ?? "") ?? .price
         phaseTab = PhaseTab(rawValue: defaults.string(forKey: Keys.phaseTab) ?? "") ?? .all
-        passPanelExpanded = defaults.bool(forKey: Keys.passExpanded)
+    }
+
+    // MARK: Editor box completion — display state only, never pricing.
+    // "picked" / "skipped" per trip per box, so a box with a saved pick
+    // loads collapsed and the accordion opens the next incomplete box.
+
+    func boxStatus(tripID: UUID, box: String) -> String? {
+        defaults.string(forKey: "tp.box.\(tripID.uuidString).\(box)")
+    }
+
+    func setBoxStatus(tripID: UUID, box: String, status: String?) {
+        let key = "tp.box.\(tripID.uuidString).\(box)"
+        if let status {
+            defaults.set(status, forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
     }
 }
