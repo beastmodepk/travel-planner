@@ -6,6 +6,7 @@ import XCTest
 /// this engine — see packages/dataset/CHANGELOG.md for the $1.66 design-mock
 /// reconciliation note (the mock's illustrative lines summed to $1,835.95;
 /// the verified total is what these tests assert).
+@MainActor
 final class PricingEngineTests: XCTestCase {
     private var catalog: Catalog!
     private var service: PricingService!
