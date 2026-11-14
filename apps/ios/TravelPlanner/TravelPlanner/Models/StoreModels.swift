@@ -121,7 +121,8 @@ final class Trip {
     var isCustomDestination: Bool { destinationID == nil }
 
     /// The Primary hotel selection — exactly one per trip; drives the total.
-    var primaryVariant: HotelVariant? { hotelVariants.first(where: \.isPrimary) }    var selectedVariants: [HotelVariant] { hotelVariants.filter(\.isSelected) }
+    var primaryVariant: HotelVariant? { hotelVariants.first(where: \.isPrimary) }
+    var selectedVariants: [HotelVariant] { hotelVariants.filter(\.isSelected) }
 
     func touch() { updatedAt = Date() }
 }
