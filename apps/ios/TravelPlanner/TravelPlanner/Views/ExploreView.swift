@@ -192,7 +192,9 @@ struct ExploreView: View {
                         }
                     }
                 }
-                .padding(16)
+                .padding(14)
+                .glassPanel()
+                .padding(12)
             }
         }
         .background(TP.black)

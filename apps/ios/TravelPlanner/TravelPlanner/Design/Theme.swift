@@ -10,15 +10,16 @@ enum TP {
     static let faint = Color.white.opacity(0.5)     // captions
     static let hairline = Color.white.opacity(0.25)
     static let separator = Color.white.opacity(0.12)
-    static let plate = Color.black.opacity(0.6)     // backing plate on photos
+    static let plate = Color.black.opacity(0.45)    // light backing on photos
 
-    /// Fixed photo scrim: text only sits in the bottom 45%, where contrast holds.
+    /// Softened photo scrim: a hint of shade only — text sits on frosted
+    /// glass panels, not on ink, so the picture stays visible.
     static let scrim = LinearGradient(
         stops: [
             .init(color: .black.opacity(0), location: 0),
-            .init(color: .black.opacity(0.35), location: 0.55),
-            .init(color: .black.opacity(0.65), location: 0.78),
-            .init(color: .black.opacity(0.88), location: 1),
+            .init(color: .black.opacity(0.16), location: 0.55),
+            .init(color: .black.opacity(0.34), location: 0.78),
+            .init(color: .black.opacity(0.5), location: 1),
         ],
         startPoint: .top, endPoint: .bottom)
 
@@ -147,7 +148,7 @@ struct DestinationPhoto: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color.white.opacity(0.14), Color.white.opacity(0.02), .black.opacity(0.65)],
+                colors: [Color.white.opacity(0.14), Color.white.opacity(0.02), .black.opacity(0.45)],
                 startPoint: .top, endPoint: .bottom)
             if let destination {
                 if let urlString = destination.photoURL, let url = URL(string: urlString) {
@@ -171,7 +172,28 @@ struct DestinationPhoto: View {
     }
 }
 
+/// Frosted-glass panel for text that sits on a photo: ultra-thin material
+/// plus a black wash and a hairline white border, so the picture shows
+/// through while white text stays legible. Black + white palette only.
+struct GlassPanel: ViewModifier {
+    var cornerRadius: CGFloat = 14
+    func body(content: Content) -> some View {
+        content
+            .background {
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: cornerRadius).fill(Color.black.opacity(0.32))
+                }
+            }
+            .overlay(RoundedRectangle(cornerRadius: cornerRadius).stroke(Color.white.opacity(0.25), lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    }
+}
+
 extension View {
+    func glassPanel(cornerRadius: CGFloat = 14) -> some View {
+        modifier(GlassPanel(cornerRadius: cornerRadius))
+    }
     func tpBackground() -> some View {
         background(TP.black).foregroundStyle(TP.white)
     }

@@ -149,9 +149,8 @@ struct TripCardView: View {
             }
             .padding(.horizontal, 10)
             .frame(minHeight: 44)
-            .background(TP.plate)
             .foregroundStyle(TP.white)
-            .clipShape(Capsule())
+            .glassPanel(cornerRadius: 22)
         }
         .accessibilityLabel("Move trip to another phase")
     }

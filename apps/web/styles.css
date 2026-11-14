@@ -61,19 +61,44 @@ strong { color: var(--ink); }
   padding: 3px 10px; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #fff;
 }
 .badge.fill { background: #fff; color: #000; border-color: #fff; font-weight: 700; }
-.badge.plate { background: rgba(0, 0, 0, .6); }
+/* On photos, badges are frosted glass — the picture shows through. */
+.badge.plate {
+  background: rgba(0, 0, 0, .35);
+  border-color: rgba(255, 255, 255, .25);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+}
 
 /* Cards + photos */
 .card { border: 1px solid var(--line2); border-radius: 16px; overflow: hidden; margin: 14px 0; background: #000; }
 .card.highlight { border-color: #fff; border-width: 2px; }
 .photo {
   position: relative; min-height: 200px; display: flex; align-items: flex-end;
-  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.02) 55%, rgba(0,0,0,.65));
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.02) 55%, rgba(0,0,0,.5));
   overflow: hidden;
 }
 .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.photo .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.65) 78%, rgba(0,0,0,.88) 100%); }
+/* Softened scrim — a hint of shade only; the text sits on glass, not on ink. */
+.photo .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.16) 55%, rgba(0,0,0,.34) 78%, rgba(0,0,0,.5) 100%); }
 .photo .photo-body { position: relative; padding: 16px; width: 100%; }
+/* Full photo cards: the text block is a frosted-glass panel floating on the
+   picture — translucent, blurred, hairline border — so the photo stays
+   visible above, around and through it. */
+.photo:not(.photo-strip) .photo-body {
+  margin: 12px; width: auto; flex: 1;
+  background: rgba(0, 0, 0, .35);
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 14px;
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+}
+/* Photo strips (trip cards, editor header): controls on the strip are glass too. */
+.photo-strip .photo-body select.field {
+  background: rgba(0, 0, 0, .35);
+  border-color: rgba(255, 255, 255, .25);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+}
 .photo .nm { font-size: 22px; font-weight: 700; color: #fff; }
 .photo-strip { min-height: 104px; }
 .card-body { padding: 16px; }
