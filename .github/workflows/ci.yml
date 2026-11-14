@@ -1,0 +1,102 @@
+name: CI
+
+# Structural checks that run anywhere (no secrets, no Xcode needed for the
+# dataset/web job), plus an unsigned macOS build of the iOS app — the first
+# real compile of the Swift code happens here.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    name: Dataset, web + file-format checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Validate the shared dataset
+        run: python3 scripts/validate_dataset.py
+
+      - name: Dataset copies must not drift
+        run: |
+          cmp packages/dataset/dataset.json apps/ios/TravelPlanner/TravelPlanner/Resources/dataset.json
+          cmp packages/dataset/dataset.json apps/web/dataset.json
+          echo "All three dataset copies identical."
+
+      - name: Parse-validate JSON / plist / YAML files
+        run: |
+          python3 - <<'PY'
+          import glob, json, plistlib, sys
+          import yaml
+          bad = []
+          for f in glob.glob('**/*.json', recursive=True):
+              try: json.load(open(f))
+              except Exception as e: bad.append((f, e))
+          for f in glob.glob('**/*.plist', recursive=True):
+              try: plistlib.load(open(f, 'rb'))
+              except Exception as e: bad.append((f, e))
+          for f in glob.glob('.github/**/*.yml', recursive=True) + glob.glob('**/*.yaml', recursive=True):
+              try: yaml.safe_load(open(f))
+              except Exception as e: bad.append((f, e))
+          for f, e in bad: print(f'BAD {f}: {e}')
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Web — syntax check + pricing goldens
+        run: |
+          node --check apps/web/engine.js
+          node --check apps/web/app.js
+          node apps/web/tests/goldens.mjs
+
+  ios-build:
+    name: Build TravelPlanner (unsigned)
+    runs-on: macos-15
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: List schemes
+        run: xcodebuild -list -project apps/ios/TravelPlanner/TravelPlanner.xcodeproj
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project apps/ios/TravelPlanner/TravelPlanner.xcodeproj \
+            -scheme TravelPlanner \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log
+
+      - name: Run unit tests (unsigned, simulator)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project apps/ios/TravelPlanner/TravelPlanner.xcodeproj \
+            -scheme TravelPlanner \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log
+
+      - name: Surface errors
+        if: failure()
+        run: |
+          grep -E "error:" build.log test.log 2>/dev/null | sort -u | head -30 | while IFS= read -r line; do
+            esc=$(printf '%s' "$line" | sed 's/%/%25/g; s/\r/%0D/g')
+            echo "::error::$esc"
+          done
+          echo "----- last 40 lines -----"
+          tail -40 build.log test.log 2>/dev/null
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-logs
+          path: |
+            build.log
+            test.log
+          if-no-files-found: ignore
