@@ -3,6 +3,95 @@
 All price changes to `dataset.json` land here, newest first. Prices change by
 editing this package — never by editing app code.
 
+## Unreleased — local working tree (not yet committed)
+
+### Trip editor: picking boxes (accordion)
+
+The editor's sections are now per-category boxes — Basics, Flights,
+Accommodation, Lift / Pass, Gear — on both editions. A box collapses
+when the user picks in it (or taps Done/Skip), shows a one-line summary
+with the pick + price and a ✓ (or "Skipped"), reopens on tap, and the
+next undecided box opens automatically. A box counts as decided **only**
+by an explicit pick, confirm or skip — priced defaults (the anchor
+flight, gear "auto") never mark a box decided, so undecided boxes load
+open. Decisions persist per trip and are display state only; the
+breakdown and sticky total are unchanged, and every golden total
+reproduces. Transfers are a single researched line, not a choice, so
+they get no box.
+
+### Main-UI removals: queued-brochures list, Epic Pass panel, empty Compare
+
+Three sections removed from both apps (UI only — no data or pricing
+change; every verified golden total reproduces):
+
+- **Queued brochures list** — the browsable queue view (web: More ›
+  Brochures; iOS: More › Brochures) is gone, with its header, empty
+  state and "assistant holds it to send from
+  partheysmusebot@gmail.com" note. The **Get brochure email** button +
+  chooser sheet stay exactly as they were; queued brochures are simply
+  held for the assistant rather than listed in-app. (The About & data
+  sources provenance copy was *not* touched.)
+- **Epic Pass decision panel** — the panel is removed from Trips on
+  both editions, along with its entry points (web: More › Passes &
+  tickets; iOS: More › Passes & tickets) and its remembered
+  expand/collapse state. The pass **engine** is unchanged: combined vs
+  separate vs full, pro-rata shares, and the recommendation still land
+  in each trip's Lift / Pass line.
+- **Compare when empty** — on web the Compare tab/section no longer
+  renders at all with zero picks (no heading, no empty state); it
+  appears with the first pick. iOS keeps its permanent Compare tab
+  with the minimal "Nothing here yet" state — an accepted platform
+  difference, recorded in `docs/PARITY.md`.
+
+### Coming-soon trip types removed
+
+Beach, City break, Adventure and Family are gone from the catalog. The
+only trip types are **Ski — West Coast** and **Ski — Japan** — both fully
+priced. Removed with them: the type-picker "(coming soon)" labels, the
+Explore "· Soon" filter chips and coming-soon placeholder card, and the
+About line "Ski — West Coast & Ski — Japan pricing: Researched dataset ·
+checked Nov 13, 2026. Other trip types are coming soon — no prices
+invented." (Other provenance captions — the hotel "Price checked" line
+and the flights snapshot note — stay.)
+
+Graceful fallback: a saved trip or persisted gallery filter that still
+names a removed type falls back to Ski — West Coast (web: state
+normalization on load + engine fallback; iOS: `tripType(id:)` fallback
+in PricingService + filter guard in Explore) instead of breaking or
+dead-ending unpriced.
+
+### Flight options replace the single basic/flex fare
+
+Each destination/window no longer carries one `{basic, flex}` fare pair.
+`flights` is now a Google-Flights-style block — a `note` plus `dec`/`jan`
+arrays of **3 selectable options** (airline, fare class, round-trip price,
+outbound + return times/durations/stops, Best/Cheapest tags). The researched
+fares did not change: the option flagged `anchor` for each fare class *is*
+the exact Nov 13, 2026 checked fare (SLC Dec JetBlue Basic $430.81 / Flex
+$560.80; SLC Jan Delta Basic $458.80; RNO Dec Delta $608.40; RNO Jan Delta
+$398.40; DEN Dec JetBlue $447.79; DEN Jan JetBlue $348.81; JAC Dec Delta
+$540.41; JAC Jan American $483.40; CTS Jan American/JAL $1,228.19 with a
+checked bag included; CTS Dec Lufthansa $5,268.29). Default selection =
+the anchor for the trip's fare class, so every verified golden total
+reproduces unchanged (default plan $3,112.43; Niseko Jan comfort $1,997.21).
+
+Honesty note (also carried in each `flights.note`): the extra options are
+representative of the same routes — real carriers for BOS–SLC/RNO/DEN/JAC/CTS
+with realistic schedules (durations computed from the shown times) and prices
+in the anchors' spread. They are a Nov 13, 2026 snapshot with representative
+schedule examples, **not** a live timetable or live fares; the apps link out
+to Google Flights for the real thing. `flightDetail` was removed — flight
+summaries are now derived from the selected option.
+
+### Photo cards: frosted glass (presentation, both apps)
+
+Text that sits on destination photos (Explore cards, trip-card photo strips)
+moved from the heavy dark scrim / solid plates to frosted-glass panels —
+translucent black with backdrop blur and a hairline white border — and the
+scrim was softened, so more of the photo shows through. No data change;
+recorded here because the dataset package owns the design contract both
+apps follow.
+
 ## Dataset v1 — 2026-11-13 (checkedAt: 2026-11-13)
 
 Initial extraction of the web app's researched catalog

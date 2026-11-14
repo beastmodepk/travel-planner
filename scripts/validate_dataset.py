@@ -79,7 +79,32 @@ def main():
                 h = d["hotels"][window][tier]
                 check((h["name"] is None) == (h["price"] is None),
                       f"{d['id']}/{window}/{tier}: hotel name and price must be null together")
-            check(d["flights"][window]["basic"] > 0, f"{d['id']}/{window}: basic fare must be priced")
+
+    # Flight options (Google-Flights-style lists, Nov 13 2026 snapshot):
+    # exactly 3 per window, unique ids, and the anchor option of each fare
+    # class reproduces the researched fare for that route/window exactly.
+    anchors = {
+        "park-city":    {"dec": (430.81, 560.80), "jan": (458.80, 628.80)},
+        "alta":         {"dec": (430.81, 560.80), "jan": (458.80, 628.80)},
+        "tahoe":        {"dec": (608.40, 738.40), "jan": (398.40, 528.41)},
+        "jackson":      {"dec": (540.41, 660.40), "jan": (483.40, 613.40)},
+        "breckenridge": {"dec": (447.79, 547.80), "jan": (348.81, 448.80)},
+        "niseko":       {"dec": (5268.29, 5568.29), "jan": (1228.19, 1392.19)},
+    }
+    seen_option_ids = set()
+    for d in dests:
+        check(bool(d["flights"].get("note")), f"{d['id']}: flights block needs the snapshot note")
+        for window in ("dec", "jan"):
+            options = d["flights"][window]
+            check(len(options) == 3, f"{d['id']}/{window}: expected 3 flight options, got {len(options)}")
+            for o in options:
+                check(o["id"] not in seen_option_ids, f"duplicate flight option id {o['id']}")
+                seen_option_ids.add(o["id"])
+                check(o["price"] > 0, f"{o['id']}: price must be positive")
+            for fare_class, want in zip(("basic", "flex"), anchors[d["id"]][window]):
+                anchor_opts = [o for o in options if o["anchor"] and o["fareClass"] == fare_class]
+                check(len(anchor_opts) == 1 and anchor_opts[0]["price"] == want,
+                      f"{d['id']}/{window}: anchor {fare_class} fare must be exactly ${want}")
 
     if failures:
         print("DATASET INVALID:")

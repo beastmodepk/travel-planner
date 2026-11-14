@@ -17,34 +17,6 @@
       "shortLabel": "Ski — Japan",
       "status": "ready",
       "blurb": "Niseko, Hokkaido — Japow, Hirafu village nightlife, Ikon-covered lifts — fully priced with flights, hotels, lifts & gear."
-    },
-    {
-      "id": "beach",
-      "label": "Beach",
-      "shortLabel": "Beach",
-      "status": "soon",
-      "blurb": "Warm-weather beach trips — pricing coming soon. Dates, style & travellers are saved."
-    },
-    {
-      "id": "city",
-      "label": "City break",
-      "shortLabel": "City break",
-      "status": "soon",
-      "blurb": "City weekends & breaks — pricing coming soon. Dates, style & travellers are saved."
-    },
-    {
-      "id": "adventure",
-      "label": "Adventure",
-      "shortLabel": "Adventure",
-      "status": "soon",
-      "blurb": "Hiking, road trips & outdoor adventure — pricing coming soon."
-    },
-    {
-      "id": "family",
-      "label": "Family",
-      "shortLabel": "Family",
-      "status": "soon",
-      "blurb": "Family-friendly trips for groups — pricing coming soon."
     }
   ],
   "windows": [
@@ -199,18 +171,162 @@
       "transfers": 110,
       "transfersDetail": "SLC airport shuttle, round trip",
       "flights": {
-        "dec": {
-          "basic": 430.81,
-          "flex": 560.8
-        },
-        "jan": {
-          "basic": 458.8,
-          "flex": 628.8
-        }
-      },
-      "flightDetail": {
-        "dec": "JetBlue nonstop · BOS–SLC",
-        "jan": "Delta nonstop · BOS–SLC"
+        "note": "Researched snapshot, checked 2026-11-13. Prices are the fares checked that day (Duffel) — the option flagged \"anchor\" for each fare class is the exact researched fare; neighbouring options are representative of the same route's spread. Times are representative schedule examples for the route, not a live timetable — check Google Flights for the actual times on your dates.",
+        "dec": [
+          {
+            "id": "park-city-dec-1",
+            "airline": "JetBlue",
+            "fareClass": "basic",
+            "price": 430.81,
+            "anchor": true,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "06:55",
+              "arrive": "10:45",
+              "arriveNextDay": 0,
+              "duration": "5h 50m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "11:30",
+              "arrive": "18:00",
+              "arriveNextDay": 0,
+              "duration": "4h 30m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "park-city-dec-2",
+            "airline": "JetBlue",
+            "fareClass": "flex",
+            "price": 560.8,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "17:10",
+              "arrive": "21:05",
+              "arriveNextDay": 0,
+              "duration": "5h 55m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "07:30",
+              "arrive": "14:05",
+              "arriveNextDay": 0,
+              "duration": "4h 35m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "park-city-dec-3",
+            "airline": "American",
+            "fareClass": "basic",
+            "price": 489.2,
+            "anchor": false,
+            "tags": [],
+            "outbound": {
+              "depart": "05:50",
+              "arrive": "12:40",
+              "arriveNextDay": 0,
+              "duration": "8h 50m",
+              "stops": 1,
+              "via": "DFW"
+            },
+            "return": {
+              "depart": "13:15",
+              "arrive": "23:40",
+              "arriveNextDay": 0,
+              "duration": "8h 25m",
+              "stops": 1,
+              "via": "DFW"
+            }
+          }
+        ],
+        "jan": [
+          {
+            "id": "park-city-jan-1",
+            "airline": "Delta",
+            "fareClass": "basic",
+            "price": 458.8,
+            "anchor": true,
+            "tags": [
+              "best"
+            ],
+            "outbound": {
+              "depart": "08:15",
+              "arrive": "12:10",
+              "arriveNextDay": 0,
+              "duration": "5h 55m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "12:25",
+              "arrive": "19:00",
+              "arriveNextDay": 0,
+              "duration": "4h 35m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "park-city-jan-2",
+            "airline": "JetBlue",
+            "fareClass": "flex",
+            "price": 628.8,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "17:05",
+              "arrive": "21:00",
+              "arriveNextDay": 0,
+              "duration": "5h 55m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "07:30",
+              "arrive": "14:05",
+              "arriveNextDay": 0,
+              "duration": "4h 35m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "park-city-jan-3",
+            "airline": "United",
+            "fareClass": "basic",
+            "price": 441.6,
+            "anchor": false,
+            "tags": [
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "06:10",
+              "arrive": "12:55",
+              "arriveNextDay": 0,
+              "duration": "8h 45m",
+              "stops": 1,
+              "via": "DEN"
+            },
+            "return": {
+              "depart": "13:40",
+              "arrive": "23:55",
+              "arriveNextDay": 0,
+              "duration": "8h 15m",
+              "stops": 1,
+              "via": "DEN"
+            }
+          }
+        ]
       },
       "hotels": {
         "dec": {
@@ -307,18 +423,162 @@
       "transfers": 59.5,
       "transfersDetail": "Reno airport shuttle, round trip",
       "flights": {
-        "dec": {
-          "basic": 608.4,
-          "flex": 738.4
-        },
-        "jan": {
-          "basic": 398.4,
-          "flex": 528.41
-        }
-      },
-      "flightDetail": {
-        "dec": "Delta · 1 stop · BOS–Reno",
-        "jan": "Delta · 1 stop · BOS–Reno"
+        "note": "Researched snapshot, checked 2026-11-13. Prices are the fares checked that day (Duffel) — the option flagged \"anchor\" for each fare class is the exact researched fare; neighbouring options are representative of the same route's spread. Times are representative schedule examples for the route, not a live timetable — check Google Flights for the actual times on your dates.",
+        "dec": [
+          {
+            "id": "tahoe-dec-1",
+            "airline": "Delta",
+            "fareClass": "basic",
+            "price": 608.4,
+            "anchor": true,
+            "tags": [
+              "best"
+            ],
+            "outbound": {
+              "depart": "07:00",
+              "arrive": "14:20",
+              "arriveNextDay": 0,
+              "duration": "10h 20m",
+              "stops": 1,
+              "via": "SLC"
+            },
+            "return": {
+              "depart": "06:30",
+              "arrive": "18:45",
+              "arriveNextDay": 0,
+              "duration": "9h 15m",
+              "stops": 1,
+              "via": "SLC"
+            }
+          },
+          {
+            "id": "tahoe-dec-2",
+            "airline": "United",
+            "fareClass": "basic",
+            "price": 562.3,
+            "anchor": false,
+            "tags": [
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "08:25",
+              "arrive": "15:05",
+              "arriveNextDay": 0,
+              "duration": "9h 40m",
+              "stops": 1,
+              "via": "DEN"
+            },
+            "return": {
+              "depart": "07:15",
+              "arrive": "19:20",
+              "arriveNextDay": 0,
+              "duration": "9h 05m",
+              "stops": 1,
+              "via": "DEN"
+            }
+          },
+          {
+            "id": "tahoe-dec-3",
+            "airline": "Delta",
+            "fareClass": "flex",
+            "price": 738.4,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "12:40",
+              "arrive": "19:30",
+              "arriveNextDay": 0,
+              "duration": "9h 50m",
+              "stops": 1,
+              "via": "SLC"
+            },
+            "return": {
+              "depart": "10:05",
+              "arrive": "22:30",
+              "arriveNextDay": 0,
+              "duration": "9h 25m",
+              "stops": 1,
+              "via": "SLC"
+            }
+          }
+        ],
+        "jan": [
+          {
+            "id": "tahoe-jan-1",
+            "airline": "Delta",
+            "fareClass": "basic",
+            "price": 398.4,
+            "anchor": true,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "07:00",
+              "arrive": "14:05",
+              "arriveNextDay": 0,
+              "duration": "10h 05m",
+              "stops": 1,
+              "via": "SLC"
+            },
+            "return": {
+              "depart": "06:30",
+              "arrive": "18:30",
+              "arriveNextDay": 0,
+              "duration": "9h 00m",
+              "stops": 1,
+              "via": "SLC"
+            }
+          },
+          {
+            "id": "tahoe-jan-2",
+            "airline": "Delta",
+            "fareClass": "flex",
+            "price": 528.41,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "12:40",
+              "arrive": "19:15",
+              "arriveNextDay": 0,
+              "duration": "9h 35m",
+              "stops": 1,
+              "via": "SLC"
+            },
+            "return": {
+              "depart": "10:05",
+              "arrive": "22:15",
+              "arriveNextDay": 0,
+              "duration": "9h 10m",
+              "stops": 1,
+              "via": "SLC"
+            }
+          },
+          {
+            "id": "tahoe-jan-3",
+            "airline": "American",
+            "fareClass": "basic",
+            "price": 452.75,
+            "anchor": false,
+            "tags": [],
+            "outbound": {
+              "depart": "05:55",
+              "arrive": "13:50",
+              "arriveNextDay": 0,
+              "duration": "10h 55m",
+              "stops": 1,
+              "via": "DFW"
+            },
+            "return": {
+              "depart": "08:20",
+              "arrive": "21:05",
+              "arriveNextDay": 0,
+              "duration": "9h 45m",
+              "stops": 1,
+              "via": "DFW"
+            }
+          }
+        ]
       },
       "hotels": {
         "dec": {
@@ -412,18 +672,162 @@
       "transfers": 100,
       "transfersDetail": "Canyon transfers, round trip",
       "flights": {
-        "dec": {
-          "basic": 430.81,
-          "flex": 560.8
-        },
-        "jan": {
-          "basic": 458.8,
-          "flex": 628.8
-        }
-      },
-      "flightDetail": {
-        "dec": "JetBlue nonstop · BOS–SLC",
-        "jan": "Delta nonstop · BOS–SLC"
+        "note": "Researched snapshot, checked 2026-11-13. Prices are the fares checked that day (Duffel) — the option flagged \"anchor\" for each fare class is the exact researched fare; neighbouring options are representative of the same route's spread. Times are representative schedule examples for the route, not a live timetable — check Google Flights for the actual times on your dates.",
+        "dec": [
+          {
+            "id": "alta-dec-1",
+            "airline": "JetBlue",
+            "fareClass": "basic",
+            "price": 430.81,
+            "anchor": true,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "06:55",
+              "arrive": "10:45",
+              "arriveNextDay": 0,
+              "duration": "5h 50m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "11:30",
+              "arrive": "18:00",
+              "arriveNextDay": 0,
+              "duration": "4h 30m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "alta-dec-2",
+            "airline": "JetBlue",
+            "fareClass": "flex",
+            "price": 560.8,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "17:10",
+              "arrive": "21:05",
+              "arriveNextDay": 0,
+              "duration": "5h 55m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "07:30",
+              "arrive": "14:05",
+              "arriveNextDay": 0,
+              "duration": "4h 35m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "alta-dec-3",
+            "airline": "American",
+            "fareClass": "basic",
+            "price": 489.2,
+            "anchor": false,
+            "tags": [],
+            "outbound": {
+              "depart": "05:50",
+              "arrive": "12:40",
+              "arriveNextDay": 0,
+              "duration": "8h 50m",
+              "stops": 1,
+              "via": "DFW"
+            },
+            "return": {
+              "depart": "13:15",
+              "arrive": "23:40",
+              "arriveNextDay": 0,
+              "duration": "8h 25m",
+              "stops": 1,
+              "via": "DFW"
+            }
+          }
+        ],
+        "jan": [
+          {
+            "id": "alta-jan-1",
+            "airline": "Delta",
+            "fareClass": "basic",
+            "price": 458.8,
+            "anchor": true,
+            "tags": [
+              "best"
+            ],
+            "outbound": {
+              "depart": "08:15",
+              "arrive": "12:10",
+              "arriveNextDay": 0,
+              "duration": "5h 55m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "12:25",
+              "arrive": "19:00",
+              "arriveNextDay": 0,
+              "duration": "4h 35m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "alta-jan-2",
+            "airline": "JetBlue",
+            "fareClass": "flex",
+            "price": 628.8,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "17:05",
+              "arrive": "21:00",
+              "arriveNextDay": 0,
+              "duration": "5h 55m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "07:30",
+              "arrive": "14:05",
+              "arriveNextDay": 0,
+              "duration": "4h 35m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "alta-jan-3",
+            "airline": "United",
+            "fareClass": "basic",
+            "price": 441.6,
+            "anchor": false,
+            "tags": [
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "06:10",
+              "arrive": "12:55",
+              "arriveNextDay": 0,
+              "duration": "8h 45m",
+              "stops": 1,
+              "via": "DEN"
+            },
+            "return": {
+              "depart": "13:40",
+              "arrive": "23:55",
+              "arriveNextDay": 0,
+              "duration": "8h 15m",
+              "stops": 1,
+              "via": "DEN"
+            }
+          }
+        ]
       },
       "hotels": {
         "dec": {
@@ -519,18 +923,161 @@
       "transfers": 72,
       "transfersDetail": "Airport transfers & ski bus",
       "flights": {
-        "dec": {
-          "basic": 540.41,
-          "flex": 660.4
-        },
-        "jan": {
-          "basic": 483.4,
-          "flex": 613.4
-        }
-      },
-      "flightDetail": {
-        "dec": "Delta · BOS–Jackson",
-        "jan": "American · 1 stop · BOS–Jackson"
+        "note": "Researched snapshot, checked 2026-11-13. Prices are the fares checked that day (Duffel) — the option flagged \"anchor\" for each fare class is the exact researched fare; neighbouring options are representative of the same route's spread. Times are representative schedule examples for the route, not a live timetable — check Google Flights for the actual times on your dates.",
+        "dec": [
+          {
+            "id": "jackson-dec-1",
+            "airline": "Delta",
+            "fareClass": "basic",
+            "price": 540.41,
+            "anchor": true,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "07:00",
+              "arrive": "13:45",
+              "arriveNextDay": 0,
+              "duration": "8h 45m",
+              "stops": 1,
+              "via": "SLC"
+            },
+            "return": {
+              "depart": "07:30",
+              "arrive": "17:50",
+              "arriveNextDay": 0,
+              "duration": "8h 20m",
+              "stops": 1,
+              "via": "SLC"
+            }
+          },
+          {
+            "id": "jackson-dec-2",
+            "airline": "Delta",
+            "fareClass": "flex",
+            "price": 660.4,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "10:15",
+              "arrive": "16:40",
+              "arriveNextDay": 0,
+              "duration": "8h 25m",
+              "stops": 1,
+              "via": "SLC"
+            },
+            "return": {
+              "depart": "12:10",
+              "arrive": "22:35",
+              "arriveNextDay": 0,
+              "duration": "8h 25m",
+              "stops": 1,
+              "via": "SLC"
+            }
+          },
+          {
+            "id": "jackson-dec-3",
+            "airline": "United",
+            "fareClass": "basic",
+            "price": 575.9,
+            "anchor": false,
+            "tags": [],
+            "outbound": {
+              "depart": "08:30",
+              "arrive": "15:20",
+              "arriveNextDay": 0,
+              "duration": "8h 50m",
+              "stops": 1,
+              "via": "DEN"
+            },
+            "return": {
+              "depart": "06:45",
+              "arrive": "17:15",
+              "arriveNextDay": 0,
+              "duration": "8h 30m",
+              "stops": 1,
+              "via": "DEN"
+            }
+          }
+        ],
+        "jan": [
+          {
+            "id": "jackson-jan-1",
+            "airline": "American",
+            "fareClass": "basic",
+            "price": 483.4,
+            "anchor": true,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "06:05",
+              "arrive": "13:10",
+              "arriveNextDay": 0,
+              "duration": "9h 05m",
+              "stops": 1,
+              "via": "DFW"
+            },
+            "return": {
+              "depart": "07:45",
+              "arrive": "18:40",
+              "arriveNextDay": 0,
+              "duration": "8h 55m",
+              "stops": 1,
+              "via": "DFW"
+            }
+          },
+          {
+            "id": "jackson-jan-2",
+            "airline": "American",
+            "fareClass": "flex",
+            "price": 613.4,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "09:40",
+              "arrive": "16:30",
+              "arriveNextDay": 0,
+              "duration": "8h 50m",
+              "stops": 1,
+              "via": "DFW"
+            },
+            "return": {
+              "depart": "12:30",
+              "arrive": "23:05",
+              "arriveNextDay": 0,
+              "duration": "8h 35m",
+              "stops": 1,
+              "via": "DFW"
+            }
+          },
+          {
+            "id": "jackson-jan-3",
+            "airline": "Delta",
+            "fareClass": "basic",
+            "price": 529.65,
+            "anchor": false,
+            "tags": [],
+            "outbound": {
+              "depart": "07:00",
+              "arrive": "13:50",
+              "arriveNextDay": 0,
+              "duration": "8h 50m",
+              "stops": 1,
+              "via": "SLC"
+            },
+            "return": {
+              "depart": "08:15",
+              "arrive": "19:05",
+              "arriveNextDay": 0,
+              "duration": "8h 50m",
+              "stops": 1,
+              "via": "SLC"
+            }
+          }
+        ]
       },
       "hotels": {
         "dec": {
@@ -629,18 +1176,162 @@
       "transfers": 140,
       "transfersDetail": "Denver airport shuttle, round trip",
       "flights": {
-        "dec": {
-          "basic": 447.79,
-          "flex": 547.8
-        },
-        "jan": {
-          "basic": 348.81,
-          "flex": 448.8
-        }
-      },
-      "flightDetail": {
-        "dec": "JetBlue nonstop · BOS–Denver",
-        "jan": "Southwest nonstop · BOS–Denver"
+        "note": "Researched snapshot, checked 2026-11-13. Prices are the fares checked that day (Duffel) — the option flagged \"anchor\" for each fare class is the exact researched fare; neighbouring options are representative of the same route's spread. Times are representative schedule examples for the route, not a live timetable — check Google Flights for the actual times on your dates.",
+        "dec": [
+          {
+            "id": "breckenridge-dec-1",
+            "airline": "JetBlue",
+            "fareClass": "basic",
+            "price": 447.79,
+            "anchor": true,
+            "tags": [
+              "best"
+            ],
+            "outbound": {
+              "depart": "07:20",
+              "arrive": "10:10",
+              "arriveNextDay": 0,
+              "duration": "4h 50m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "11:00",
+              "arrive": "17:25",
+              "arriveNextDay": 0,
+              "duration": "4h 25m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "breckenridge-dec-2",
+            "airline": "JetBlue",
+            "fareClass": "flex",
+            "price": 547.8,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "17:45",
+              "arrive": "20:30",
+              "arriveNextDay": 0,
+              "duration": "4h 45m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "07:15",
+              "arrive": "13:35",
+              "arriveNextDay": 0,
+              "duration": "4h 20m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "breckenridge-dec-3",
+            "airline": "Southwest",
+            "fareClass": "basic",
+            "price": 419.6,
+            "anchor": false,
+            "tags": [
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "09:05",
+              "arrive": "11:55",
+              "arriveNextDay": 0,
+              "duration": "4h 50m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "13:30",
+              "arrive": "19:55",
+              "arriveNextDay": 0,
+              "duration": "4h 25m",
+              "stops": 0,
+              "via": null
+            }
+          }
+        ],
+        "jan": [
+          {
+            "id": "breckenridge-jan-1",
+            "airline": "JetBlue",
+            "fareClass": "basic",
+            "price": 348.81,
+            "anchor": true,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "07:20",
+              "arrive": "10:05",
+              "arriveNextDay": 0,
+              "duration": "4h 45m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "11:00",
+              "arrive": "17:20",
+              "arriveNextDay": 0,
+              "duration": "4h 20m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "breckenridge-jan-2",
+            "airline": "JetBlue",
+            "fareClass": "flex",
+            "price": 448.8,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "17:45",
+              "arrive": "20:35",
+              "arriveNextDay": 0,
+              "duration": "4h 50m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "07:15",
+              "arrive": "13:40",
+              "arriveNextDay": 0,
+              "duration": "4h 25m",
+              "stops": 0,
+              "via": null
+            }
+          },
+          {
+            "id": "breckenridge-jan-3",
+            "airline": "United",
+            "fareClass": "basic",
+            "price": 385.2,
+            "anchor": false,
+            "tags": [],
+            "outbound": {
+              "depart": "10:30",
+              "arrive": "13:20",
+              "arriveNextDay": 0,
+              "duration": "4h 50m",
+              "stops": 0,
+              "via": null
+            },
+            "return": {
+              "depart": "14:45",
+              "arrive": "21:10",
+              "arriveNextDay": 0,
+              "duration": "4h 25m",
+              "stops": 0,
+              "via": null
+            }
+          }
+        ]
       },
       "hotels": {
         "dec": {
@@ -739,18 +1430,163 @@
       "transfers": 80,
       "transfersDetail": "Airport bus CTS↔Niseko (~3 hrs), round trip",
       "flights": {
-        "dec": {
-          "basic": 5268.29,
-          "flex": 5568.29
-        },
-        "jan": {
-          "basic": 1228.19,
-          "flex": 1392.19
-        }
-      },
-      "flightDetail": {
-        "dec": "Lufthansa · 2 stops · BOS–CTS (New Chitose)",
-        "jan": "American / JAL · 1 stop · BOS–CTS (New Chitose)"
+        "note": "Researched snapshot, checked 2026-11-13. Prices are the fares checked that day (Duffel) — the option flagged \"anchor\" for each fare class is the exact researched fare; neighbouring options are representative of the same route's spread. Times are representative schedule examples for the route, not a live timetable — check Google Flights for the actual times on your dates.",
+        "dec": [
+          {
+            "id": "niseko-dec-1",
+            "airline": "Lufthansa",
+            "fareClass": "basic",
+            "price": 5268.29,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "17:55",
+              "arrive": "11:15",
+              "arriveNextDay": 2,
+              "duration": "27h 20m",
+              "stops": 2,
+              "via": "FRA · HND"
+            },
+            "return": {
+              "depart": "09:40",
+              "arrive": "18:25",
+              "arriveNextDay": 0,
+              "duration": "22h 45m",
+              "stops": 2,
+              "via": "HND · FRA"
+            }
+          },
+          {
+            "id": "niseko-dec-2",
+            "airline": "Lufthansa",
+            "fareClass": "flex",
+            "price": 5568.29,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "15:40",
+              "arrive": "09:50",
+              "arriveNextDay": 2,
+              "duration": "28h 10m",
+              "stops": 2,
+              "via": "FRA · HND"
+            },
+            "return": {
+              "depart": "11:20",
+              "arrive": "20:05",
+              "arriveNextDay": 0,
+              "duration": "22h 45m",
+              "stops": 2,
+              "via": "HND · FRA"
+            }
+          },
+          {
+            "id": "niseko-dec-3",
+            "airline": "ANA",
+            "fareClass": "basic",
+            "price": 4712.0,
+            "anchor": false,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "10:30",
+              "arrive": "18:05",
+              "arriveNextDay": 1,
+              "duration": "17h 35m",
+              "stops": 1,
+              "via": "HND"
+            },
+            "return": {
+              "depart": "19:10",
+              "arrive": "21:50",
+              "arriveNextDay": 0,
+              "duration": "16h 40m",
+              "stops": 1,
+              "via": "HND"
+            }
+          }
+        ],
+        "jan": [
+          {
+            "id": "niseko-jan-1",
+            "airline": "American / JAL",
+            "fareClass": "basic",
+            "price": 1228.19,
+            "anchor": true,
+            "tags": [
+              "best",
+              "cheapest"
+            ],
+            "outbound": {
+              "depart": "11:05",
+              "arrive": "19:25",
+              "arriveNextDay": 1,
+              "duration": "18h 20m",
+              "stops": 1,
+              "via": "HND"
+            },
+            "return": {
+              "depart": "17:55",
+              "arrive": "20:20",
+              "arriveNextDay": 0,
+              "duration": "16h 25m",
+              "stops": 1,
+              "via": "HND"
+            },
+            "bagIncluded": true
+          },
+          {
+            "id": "niseko-jan-2",
+            "airline": "American / JAL",
+            "fareClass": "flex",
+            "price": 1392.19,
+            "anchor": true,
+            "tags": [],
+            "outbound": {
+              "depart": "13:20",
+              "arrive": "21:40",
+              "arriveNextDay": 1,
+              "duration": "18h 20m",
+              "stops": 1,
+              "via": "HND"
+            },
+            "return": {
+              "depart": "16:40",
+              "arrive": "19:15",
+              "arriveNextDay": 0,
+              "duration": "16h 35m",
+              "stops": 1,
+              "via": "HND"
+            },
+            "bagIncluded": true
+          },
+          {
+            "id": "niseko-jan-3",
+            "airline": "ANA",
+            "fareClass": "basic",
+            "price": 1318.5,
+            "anchor": false,
+            "tags": [],
+            "outbound": {
+              "depart": "10:30",
+              "arrive": "18:05",
+              "arriveNextDay": 1,
+              "duration": "17h 35m",
+              "stops": 1,
+              "via": "HND"
+            },
+            "return": {
+              "depart": "19:10",
+              "arrive": "21:50",
+              "arriveNextDay": 0,
+              "duration": "16h 40m",
+              "stops": 1,
+              "via": "HND"
+            }
+          }
+        ]
       },
       "hotels": {
         "dec": {
