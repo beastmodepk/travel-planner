@@ -1,0 +1,45 @@
+name: GitHub Pages — Travel Planner web
+
+# Deploys apps/web to GitHub Pages on every push to main.
+# Live at https://beastmodepk.github.io/travel-planner/
+#
+# FIRST-RUN NOTE: if this workflow fails with "Pages not enabled", the repo
+# owner enables Pages once via Settings → Pages → Source: "GitHub Actions"
+# (see docs/PUBLISHING.md). Nothing in the repo can enable it itself.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy web to Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload apps/web
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
