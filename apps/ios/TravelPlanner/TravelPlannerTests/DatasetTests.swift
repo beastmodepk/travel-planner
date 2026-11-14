@@ -70,4 +70,14 @@ final class DatasetTests: XCTestCase {
         let janAnchor = niseko.flightOptions(window: "jan").first { $0.anchor && $0.fareClass == "basic" }
         XCTAssertEqual(janAnchor?.bagIncluded, true)
     }
+
+    func testCatalogCarriesExactlyTwoTripTypes() throws {
+        let catalog = try CatalogLoader.loadBundled()
+        XCTAssertEqual(catalog.tripTypes.map(\.id), ["ski-west", "ski-japan"])
+        XCTAssertEqual(catalog.tripType(id: "ski-west").status, "ready")
+        XCTAssertEqual(catalog.tripType(id: "ski-japan").status, "ready")
+        // Removed types (beach/city/adventure/family) resolve through the
+        // fallback to the first catalog type — Ski — West Coast.
+        XCTAssertEqual(catalog.tripType(id: "beach").id, "ski-west")
+    }
 }

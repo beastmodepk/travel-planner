@@ -40,8 +40,8 @@ struct TravelPlannerApp: App {
     }
 }
 
-/// Cross-tab navigation state (tab selection, card highlight, pass-panel
-/// deep link from More › Passes & tickets).
+/// Cross-tab navigation state (tab selection, card highlight, editor
+/// deep links from Explore).
 @MainActor
 @Observable
 final class AppNavigation {

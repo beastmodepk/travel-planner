@@ -103,10 +103,15 @@ final class PricingService {
         } else {
             destName = trip.customDestinationName ?? ""
         }
-        let readyType = trip.tripTypeID == "ski-west" || trip.tripTypeID == "ski-japan"
+        // A saved trip may carry a tripTypeID the catalog no longer has
+        // (Beach / City break / Adventure / Family were removed). tripType(id:)
+        // falls back to the first catalog type — Ski — West Coast — so the
+        // trip keeps pricing instead of breaking.
+        let effectiveTypeID = catalog.tripType(id: trip.tripTypeID).id
+        let readyType = effectiveTypeID == "ski-west" || effectiveTypeID == "ski-japan"
         return PricingRequest(
             origin: (settings?.origin ?? "BOS").uppercased(),
-            tripType: trip.tripTypeID,
+            tripType: effectiveTypeID,
             destinationId: trip.destinationID ?? destName,
             destinationName: destName,
             custom: trip.destinationID == nil || !readyType,
@@ -208,6 +213,7 @@ final class PricingService {
 
             priced[trip.id] = TripPricing(
                 result: r, lines: lines,
+                flightSummary: r.flightOptions.first(where: \.selected)?.summary,
                 total: r.priced ? total : nil, partial: partial,
                 variants: variants, warnings: warnings)
         }

@@ -16,7 +16,6 @@ final class ViewPrefs {
     var galleryType: String { didSet { defaults.set(galleryType, forKey: Keys.galleryType) } }
     var hotelSort: HotelSort { didSet { defaults.set(hotelSort.rawValue, forKey: Keys.hotelSort) } }
     var phaseTab: PhaseTab { didSet { defaults.set(phaseTab.rawValue, forKey: Keys.phaseTab) } }
-    var passPanelExpanded: Bool { didSet { defaults.set(passPanelExpanded, forKey: Keys.passExpanded) } }
 
     private enum Keys {
         static let tripSort = "tp.tripSort"
@@ -26,7 +25,6 @@ final class ViewPrefs {
         static let galleryType = "tp.galleryType"
         static let hotelSort = "tp.hotelSort"
         static let phaseTab = "tp.phaseTab"
-        static let passExpanded = "tp.passExpanded"
     }
 
     init(defaults: UserDefaults = .standard) {

@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 
 /// Trips tab: phase tabs with counts, display-only filter + sort, collapsed
-/// cards, the Epic Pass panel, Past trips in a collapsed bottom section,
-/// brochure chooser in the header.
+/// cards, Past trips in a collapsed bottom section, brochure chooser in the
+/// header. (The Epic Pass pricing is engine-only — no panel UI.)
 struct TripsView: View {
     @Environment(PricingService.self) private var pricing
     @Environment(ViewPrefs.self) private var prefs
@@ -26,7 +26,6 @@ struct TripsView: View {
                         header
                         filterRow
                         phaseChips
-                        PassPanelView(trips: trips)
                         tripSections
                         addTripButton
                     }

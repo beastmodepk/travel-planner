@@ -198,86 +198,11 @@ struct BrochureChooserSheet: View {
                     .padding(12)
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(TP.separator, lineWidth: 1))
                 }
-                Text("Queued is not sent — the assistant sends queued brochures from partheysmusebot@gmail.com. Track them in More › Brochures.")
+                Text("Queued is not sent — the assistant sends queued brochures from partheysmusebot@gmail.com.")
                     .font(.caption).foregroundStyle(TP.faint)
             }
             .padding(16)
         }
         .tpBackground()
-    }
-}
-
-/// More › Brochures: the queue, trackable — recipient, time, summary,
-/// Queued/Sent pill, share + mark-sent per row.
-struct QueuedBrochuresView: View {
-    @Query(sort: \BrochureRequest.createdAt, order: .reverse) private var requests: [BrochureRequest]
-    @Environment(\.modelContext) private var context
-
-    var body: some View {
-        Group {
-            if requests.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "envelope").font(.largeTitle).foregroundStyle(TP.faint)
-                    Text("No brochures queued yet")
-                        .font(.headline)
-                    Text("Queue one from Trips › Get brochure email.")
-                        .font(.subheadline).foregroundStyle(TP.dim)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List {
-                    ForEach(requests, id: \.id) { request in
-                        row(request)
-                    }
-                }
-                .scrollContentBackground(.hidden)
-            }
-        }
-        .tpBackground()
-        .navigationTitle("Brochures")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func row(_ request: BrochureRequest) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(request.summary).font(.headline)
-                    Text("to \(request.recipient)")
-                        .font(.caption).foregroundStyle(TP.dim)
-                    Text(DateFormatter.localizedString(from: request.createdAt, dateStyle: .medium, timeStyle: .short))
-                        .font(.caption).foregroundStyle(TP.faint)
-                }
-                Spacer()
-                Badge(label: request.status.label, filled: request.status == .sent)
-            }
-            HStack(spacing: 18) {
-                if let url = BrochureService.pdfURL(for: request) {
-                    ShareLink(item: url) {
-                        Label("Share PDF", systemImage: "square.and.arrow.up")
-                            .font(.subheadline)
-                    }
-                    .frame(minHeight: 44)
-                }
-                ShareLink(item: request.emailText) {
-                    Label("Share text", systemImage: "text.quote")
-                        .font(.subheadline)
-                }
-                .frame(minHeight: 44)
-                if request.status == .queued {
-                    Button("Mark as sent") {
-                        request.status = .sent
-                        request.sentAt = Date()
-                        try? context.save()
-                    }
-                    .font(.subheadline).underline()
-                    .frame(minHeight: 44)
-                }
-                Spacer()
-            }
-            .foregroundStyle(TP.white)
-        }
-        .padding(.vertical, 6)
-        .listRowBackground(TP.black)
     }
 }

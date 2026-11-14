@@ -121,7 +121,7 @@ struct OnboardingView: View {
                 .disabled(airport.count < 3)
                 .opacity(airport.count < 3 ? 0.4 : 1)
         case 2:
-            heading("If you ski, how do you ski?", "Only used for ski trips (West Coast & Japan). Other trip types ignore it.")
+            heading("If you ski, how do you ski?", "Only used for ski trips (West Coast & Japan).")
             optionList(SkiLevel.allCases, current: level) { level = $0; next() }
         case 3:
             heading("Terrain you love (for ski)", "Pick any — ski resorts that match get flagged for you.")

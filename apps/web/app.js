@@ -45,8 +45,8 @@
       trips: [],
       compare: [], // [{tripId, tier}] — opt-in only, max 3, priced live
       brochures: [], // queued brochure requests
-      prefs: { tripSort: 'manual', gallerySort: 'curated', tripFilter: '', galleryFilter: '', galleryType: 'all', hotelSort: 'price', phaseTab: 'all', passExpanded: false },
       ui: { tab: 'explore', editorTripId: null, ob: null, hotelTag: 'All', dismissedSuggestions: {} },
+      prefs: { tripSort: 'manual', gallerySort: 'curated', tripFilter: '', galleryFilter: '', galleryType: 'all', hotelSort: 'price', phaseTab: 'all' },
     };
   }
   function load() {
@@ -223,7 +223,7 @@
         <input class="field" id="ob-airport" type="text" placeholder="BOS" maxlength="5" value="${esc(a.homeAirport)}" oninput="TP.obAirport(this.value)" style="text-transform:uppercase">
         <button class="btn-primary" ${a.homeAirport.trim().length < 3 ? 'disabled' : ''} onclick="TP.obNext()">Continue</button>`;
     } else if (step === 2) {
-      body = heading('If you ski, how do you ski?', 'Only used for ski trips (West Coast & Japan). Other trip types ignore it.') + optRows(LEVELS, a.level, 'level', true);
+      body = heading('If you ski, how do you ski?', 'Only used for ski trips (West Coast & Japan).') + optRows(LEVELS, a.level, 'level', true);
     } else if (step === 3) {
       body = heading('Terrain you love (for ski)', 'Pick any — ski resorts that match get flagged for you.') + `
         <div class="chips">${TERRAIN.map((o) => `<button class="chip ${a.terrain.includes(o.v) ? 'sel' : ''}" onclick="TP.obTerrain('${o.v}')">${a.terrain.includes(o.v) ? '✓ ' : ''}${esc(o.l)}</button>`).join('')}</div>
@@ -265,7 +265,7 @@
     return `<nav class="tabbar">
       <button class="${on('explore')}" onclick="TP.go('explore')">Explore</button>
       <button class="${on('trips')}" onclick="TP.go('trips')">Trips</button>
-      <button class="${on('compare')}" onclick="TP.go('compare')">Compare${state.compare.length ? `<span class="cbadge">${state.compare.length}</span>` : ''}</button>
+      ${state.compare.length ? `<button class="${on('compare')}" onclick="TP.go('compare')">Compare<span class="cbadge">${state.compare.length}</span></button>` : ''}
       <button class="${on('more')}" onclick="TP.go('more')">More</button>
     </nav>`;
   }
@@ -295,15 +295,8 @@
       case 'snow': list.sort((a, b) => b.snowScore - a.snowScore); break;
       case 'social': list.sort((a, b) => b.socialScore - a.socialScore); break;
     }
-    const selectedType = catalog.tripTypes.find((t) => t.id === prefs.galleryType);
     let gallery = '';
-    if (prefs.galleryType !== 'all' && selectedType && selectedType.status === 'soon') {
-      gallery = `<div class="card"><div class="card-body">
-        <h2 style="margin-top:0">${esc(selectedType.label)}</h2>
-        <p>${esc(selectedType.blurb)}</p>
-        <p class="faint">Trips of this type can be planned and saved today; pricing arrives with research — nothing is invented in the meantime.</p>
-      </div></div>`;
-    } else if (!list.length) {
+    if (!list.length) {
       gallery = `<div class="empty-dash"><p><strong>Nothing matches “${esc(prefs.galleryFilter)}”</strong></p>
         <button class="btn-tertiary" onclick="TP.setPref('galleryFilter','')">Clear filter</button></div>`;
     } else {
@@ -336,7 +329,7 @@
       <input class="field" type="search" placeholder="Filter by name or place…" value="${esc(prefs.galleryFilter)}" oninput="TP.setPref('galleryFilter', this.value)">
       <div class="chips scroll">
         <button class="chip ${prefs.galleryType === 'all' ? 'sel' : ''}" onclick="TP.setPref('galleryType','all')">All types</button>
-        ${catalog.tripTypes.map((t) => `<button class="chip ${prefs.galleryType === t.id ? 'sel' : ''}" onclick="TP.setPref('galleryType','${t.id}')">${esc(t.shortLabel)}${t.status === 'soon' ? ' · Soon' : ''}</button>`).join('')}
+        ${catalog.tripTypes.map((t) => `<button class="chip ${prefs.galleryType === t.id ? 'sel' : ''}" onclick="TP.setPref('galleryType','${t.id}')">${esc(t.shortLabel)}</button>`).join('')}
       </div>
       <p>Prices from: January · from ${esc(state.settings.origin)} · 1 traveller · 3 ski days · cheapest stay &amp; gear — a starting point, not a firm quote.</p>
       <div class="toolbar"><span class="faint">Sort</span>
@@ -402,30 +395,6 @@
     </div>`;
   }
 
-  function passPanel(planObj) {
-    const pass = planObj.pass;
-    const expanded = state.prefs.passExpanded;
-    if (!pass.program) {
-      return `<div class="card"><div class="card-body toolbar">
-        <strong>The Epic Pass decision</strong><span class="spacer"></span><span class="faint">No Epic trips in plan</span>
-      </div></div>`;
-    }
-    const rec = pass.options.find((o) => o.recommended);
-    const separate = pass.options.find((o) => o.key === 'separate');
-    const saving = rec && separate && (rec.key === 'combined' || rec.key === 'full') && separate.amount > rec.amount
-      ? `<p><strong>Saves ${money(E.round2(separate.amount - rec.amount))} vs separate passes</strong></p>` : '';
-    return `<div class="card"><div class="card-body">
-      <button class="optrow" style="border:none;padding:0;margin:0" onclick="TP.togglePass()">
-        <strong>The Epic Pass decision</strong><span>${expanded ? '▴' : '▾'}</span>
-      </button>
-      ${expanded ? `
-        ${pass.options.map((o) => `<div class="row"><span class="lbl">${esc(o.label)} ${o.recommended ? '<span class="badge fill">Recommended</span>' : ''}<small style="display:block">${esc(o.detail)}</small></span><span class="val price">${money(o.amount)}${o.estimate ? ' ~' : ''}</span></div>`).join('')}
-        ${saving}
-        <p class="note-box">${esc(pass.note)}</p>
-        <p><a href="${esc(pass.linkUrl)}" target="_blank" rel="noopener">${esc(pass.linkLabel || 'Epic Pass')} ↗</a></p>` : ''}
-    </div></div>`;
-  }
-
   function renderTrips() {
     const planObj = plan();
     const prefs = state.prefs;
@@ -457,7 +426,6 @@
         <button class="chip ${prefs.phaseTab === 'all' ? 'sel' : ''}" onclick="TP.setPref('phaseTab','all')">All trips (${counts.all})</button>
         ${PHASES.map((p) => `<button class="chip ${prefs.phaseTab === p.id ? 'sel' : ''}" onclick="TP.setPref('phaseTab','${p.id}')">${esc(p.label)} (${counts[p.id]})</button>`).join('')}
       </div>
-      ${passPanel(planObj)}
       ${main.length ? main.map(cardFor).join('') : '<p class="faint" style="text-align:center;padding:24px 0">No trips here yet — plan one from Explore.</p>'}
       ${prefs.phaseTab === 'all' ? `<details class="past"><summary>Past trips (${past.length})</summary>
         ${past.length ? past.map(cardFor).join('') : '<p class="faint">No past trips yet.</p>'}</details>` : ''}
@@ -479,7 +447,7 @@
 
     const phaseSeg = `<div class="chips">${PHASES.map((p) => `<button class="chip ${trip.phase === p.id ? 'sel' : ''}" onclick="TP.setPhase('${trip.id}','${p.id}')">${esc(p.short)}</button>`).join('')}</div>`;
 
-    const typeOptions = catalog.tripTypes.map((t) => `<option value="${t.id}" ${trip.tripType === t.id ? 'selected' : ''}>${esc(t.label)}${t.status === 'soon' ? ' (coming soon)' : ''}</option>`).join('');
+    const typeOptions = catalog.tripTypes.map((t) => `<option value="${t.id}" ${trip.tripType === t.id ? 'selected' : ''}>${esc(t.label)}</option>`).join('');
     const destOptions = catalog.destinations.filter((d) => d.tripTypeID === trip.tripType)
       .map((d) => `<option value="${d.id}" ${!trip.custom && trip.destination === d.id ? 'selected' : ''}>${esc(d.name)}, ${esc(d.state)}</option>`).join('');
     const customOptions = state.settings.customDestinations.map((c) => `<option value="${esc(c.name)}" ${trip.custom && trip.destination === c.name ? 'selected' : ''}>${esc(c.name)} (custom)</option>`).join('');
@@ -611,14 +579,9 @@
       return { pick, trip, variant };
     }).filter(Boolean);
 
-    if (!cols.length) {
-      return `<div class="wrap"><h1>Compare</h1>
-        <div class="empty-dash">
-          <p style="font-size:19px;color:var(--ink)"><strong>Nothing here yet</strong></p>
-          <p>Tap <strong>Add to compare</strong> on any listing to line it up here.</p>
-          <button class="btn-secondary btn-inline" onclick="TP.go('explore')">Browse destinations</button>
-        </div></div>${tabbar()}`;
-    }
+    // No picks (or every pick's trip is gone): Compare renders nothing —
+    // the section only exists once something is added to compare.
+    if (!cols.length) return renderTrips();
     const rowsDef = [
       ['Flight', (v) => [v.flightAmount, v.flightEstimate]],
       ['Transfers', (v) => [v.transfersAmount, v.transfersEstimate]],
@@ -683,10 +646,10 @@
           <p style="font-size:19px;color:var(--ink)">✓ <strong>Queued for assistant</strong></p>
           <p>To ${esc(done.recipient)} · ${esc(done.when)}</p>
           ${done.items.map((s) => `<div class="row"><span class="lbl" style="color:var(--ink)">${esc(s)}</span><span class="badge">Queued</span></div>`).join('')}
-          <p class="faint" style="font-size:13px">Queued is not sent — the assistant sends queued brochures from partheysmusebot@gmail.com. Track them in More › Brochures.</p>
+          <p class="faint" style="font-size:13px">Queued is not sent — the assistant sends queued brochures from partheysmusebot@gmail.com.</p>
           <button class="btn-primary" onclick="TP.closeBrochure()">Done</button>`
         : `
-          <p>One brochure per ticked stay — a PDF summary (downloadable here) plus the plan as email text, queued for the assistant to send.</p>
+          <p>One brochure per ticked stay — a PDF summary plus the plan as email text, queued for the assistant to send.</p>
           ${any ? rowsHTML : '<p class="faint">No priced trips yet — price a trip first, then queue its brochure.</p>'}
           <label class="flabel" for="bro-email">Email for the brochures</label>
           <input class="field" id="bro-email" type="email" value="${esc(email)}" oninput="TP.brochureEmailIn(this.value)">
@@ -716,36 +679,13 @@
     ].join('\n');
   }
 
-  // ── More / Profile / Settings / About / Brochures ───────────────────────
+  // ── More / Profile / Settings / About ──────────────────────────────────
   function renderMore() {
-    const queued = state.brochures.filter((b) => b.status === 'queued').length;
     return `<div class="wrap"><h1>More</h1>
       <button class="optrow" onclick="TP.go('profile')"><span><strong>Profile</strong><br><span class="hint">Name, email, airport, ski level, passes…</span></span><span>›</span></button>
-      <button class="optrow" onclick="TP.go('brochures')"><span><strong>Brochures</strong><br><span class="hint">Queued and sent trip brochures</span></span><span>${queued ? `<span class="badge fill">${queued} queued</span> ` : ''}›</span></button>
-      <button class="optrow" onclick="TP.goPasses()"><span><strong>Passes &amp; tickets</strong><br><span class="hint">Opens your trips with the Epic Pass panel expanded</span></span><span>›</span></button>
       <button class="optrow" onclick="TP.go('settings')"><span><strong>Planner settings</strong><br><span class="hint">Origin airport &amp; travellers for new searches</span></span><span>›</span></button>
       <button class="optrow" onclick="TP.go('about')"><span><strong>About &amp; data sources</strong><br><span class="hint">Where the numbers come from — and what the app never does</span></span><span>›</span></button>
       <p class="faint" style="font-size:13px">No accounts, no tracking, nothing leaves your browser — your plan stays in this browser's local storage only. The assistant sends queued brochures from the assistant mailbox.</p>
-    </div>${tabbar()}`;
-  }
-
-  function renderBrochures() {
-    const rows = state.brochures.slice().reverse().map((b) => `
-      <div class="card"><div class="card-body">
-        <div class="toolbar"><strong style="flex:1">${esc(b.title)}</strong><span class="badge">${esc(b.status === 'queued' ? 'Queued' : b.status === 'sent' ? 'Sent' : 'Failed')}</span></div>
-        <p class="faint">To ${esc(b.recipient)} · ${esc(b.createdAt)}</p>
-        <div class="toolbar">
-          <button class="btn-tertiary" onclick="TP.downloadBrochure('${b.id}', 'text')">Download text</button>
-          <button class="btn-tertiary" onclick="TP.printBrochure('${b.id}')">Print / save PDF</button>
-          ${b.status === 'queued' ? `<button class="btn-tertiary" onclick="TP.markBrochure('${b.id}', 'sent')">Mark as sent</button>` : ''}
-          ${b.status !== 'failed' ? `<button class="btn-tertiary" onclick="TP.markBrochure('${b.id}', 'failed')">Mark as failed</button>` : ''}
-        </div>
-      </div></div>`).join('');
-    return `<div class="wrap">
-      <button class="btn-tertiary" onclick="TP.go('more')">‹ More</button>
-      <h1>Brochures</h1>
-      <p>Every brochure you queue, newest first. "Queued for assistant" means the assistant holds it to send from partheysmusebot@gmail.com.</p>
-      ${state.brochures.length ? rows : '<p class="faint">No brochures yet — queue one from Your trips › Get brochure email.</p>'}
     </div>${tabbar()}`;
   }
 
@@ -865,12 +805,12 @@
         case 'trips': html = renderTrips(); break;
         case 'editor': html = renderEditor(); break;
         case 'addtrip': html = renderAddTrip(); break;
-        case 'compare': html = renderCompare(); break;
+        case 'compare': html = state.compare.length ? renderCompare() : renderTrips(); break;
         case 'more': html = renderMore(); break;
         case 'profile': html = renderProfile(); break;
         case 'settings': html = renderSettings(); break;
         case 'about': html = renderAbout(); break;
-        case 'brochures': html = renderBrochures(); break;
+
         case 'payoff': html = renderPayoff(); break;
         default: html = renderExplore();
       }
@@ -895,7 +835,6 @@
 
   window.TP = {
     go(tab) { state.ui.tab = tab; window.scrollTo(0, 0); render(); },
-    goPasses() { state.prefs.passExpanded = true; state.ui.tab = 'trips'; save(); render(); },
     setPref(key, value) {
       state.prefs[key] = value;
       const active = document.activeElement;
@@ -932,7 +871,6 @@
     openEditor(id) { state.ui.editorTripId = id; state.ui.tab = 'editor'; render(); },
     setPhase(id, phase) { mutate(() => { tripById(id).phase = phase; }); },
     dismissSuggestion(id) { state.ui.dismissedSuggestions[id] = true; render(); },
-    togglePass() { mutate(() => { state.prefs.passExpanded = !state.prefs.passExpanded; }); },
     addTripPrompt() { state.ui.tab = 'addtrip'; render(); },
     addTrip(destId) {
       const dest = destById(destId);
@@ -1048,27 +986,6 @@
       state.ui.brochureDone = { recipient: email, when: new Date().toLocaleString('en-US'), items };
       save(); render();
     },
-    downloadBrochure(id, kind) {
-      const b = state.brochures.find((x) => x.id === id);
-      if (!b) return;
-      const blob = new Blob([b.text], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = b.title.replace(/[^a-z0-9]+/gi, '-') + '.txt';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    },
-    printBrochure(id) {
-      const b = state.brochures.find((x) => x.id === id);
-      if (!b) return;
-      const w = window.open('', '_blank');
-      if (!w) return;
-      w.document.write('<html><head><title>' + esc(b.title) + '</title></head><body style="font-family:monospace;white-space:pre-wrap;padding:32px">' + esc(b.text) + '</body></html>');
-      w.document.close();
-      w.focus();
-      w.print();
-    },
-    markBrochure(id, status) { mutate(() => { const b = state.brochures.find((x) => x.id === id); if (b) b.status = status; }); },
     // Profile & settings
     profileField(key, value) { if (!state.profile) state.profile = { ...DEFAULT_PROFILE }; state.profile[key] = value; save(); },
     profileAirport(v) { if (!state.profile) state.profile = { ...DEFAULT_PROFILE }; state.profile.homeAirport = v.toUpperCase(); state.settings.origin = v.toUpperCase(); save(); },
@@ -1109,10 +1026,31 @@
     },
   };
 
+  // Saved state may reference trip types the catalog no longer carries
+  // (Beach / City break / Adventure / Family were removed). Fall back to
+  // Ski — West Coast so those trips keep pricing instead of breaking.
+  function normalizeState() {
+    const typeIds = catalog.tripTypes.map((t) => t.id);
+    for (const trip of state.trips) {
+      if (!typeIds.includes(trip.tripType)) {
+        trip.tripType = 'ski-west';
+        trip.flightOptionId = null;
+        const d = destById(trip.destination);
+        if (!trip.custom && (!d || d.tripTypeID !== trip.tripType)) {
+          const first = catalog.destinations.find((x) => x.tripTypeID === trip.tripType);
+          if (first) trip.destination = first.id;
+        }
+      }
+    }
+    if (state.prefs.galleryType !== 'all' && !typeIds.includes(state.prefs.galleryType)) {
+      state.prefs.galleryType = 'all';
+    }
+  }
+
   // ── Boot ────────────────────────────────────────────────────────────────
   fetch('dataset.json')
     .then((r) => { if (!r.ok) throw new Error('dataset ' + r.status); return r.json(); })
-    .then((json) => { catalog = json; render(); })
+    .then((json) => { catalog = json; normalizeState(); save(); render(); })
     .catch((err) => {
       document.getElementById('app').innerHTML = '<div class="wrap"><h1>Couldn\'t load the dataset</h1><p>' + esc(err.message) + '</p><p>The researched prices ship with the app as dataset.json — check it sits next to index.html.</p></div>';
     });

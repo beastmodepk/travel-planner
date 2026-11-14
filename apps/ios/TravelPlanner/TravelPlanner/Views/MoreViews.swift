@@ -1,16 +1,12 @@
 import SwiftUI
 import SwiftData
 
-/// More tab: Profile, Planner settings, Brochures, Passes & tickets,
-/// About & data sources. There is deliberately NO Appearance section —
-/// jet black only, by design.
+/// More tab: Profile, Planner settings, About & data sources. There is
+/// deliberately NO Appearance section — jet black only, by design. (No
+/// Brochures entry: queued brochures are held for the assistant, not
+/// browsable in-app. No Passes & tickets entry: pass pricing is
+/// engine-only, no panel.)
 struct MoreView: View {
-    @Environment(AppNavigation.self) private var navigation
-    @Environment(ViewPrefs.self) private var prefs
-    @Query private var requests: [BrochureRequest]
-
-    private var queuedCount: Int { requests.filter { $0.status == .queued }.count }
-
     var body: some View {
         NavigationStack {
             List {
@@ -26,28 +22,6 @@ struct MoreView: View {
                     } label: {
                         Label("Planner settings", systemImage: "slider.horizontal.3")
                             .frame(minHeight: 44)
-                    }
-                    NavigationLink {
-                        QueuedBrochuresView()
-                    } label: {
-                        HStack {
-                            Label("Brochures", systemImage: "envelope")
-                            Spacer()
-                            if queuedCount > 0 {
-                                Text("\(queuedCount) queued")
-                                    .font(.caption)
-                                    .foregroundStyle(TP.faint)
-                            }
-                        }
-                        .frame(minHeight: 44)
-                    }
-                    Button {
-                        prefs.passPanelExpanded = true
-                        navigation.selectedTab = .trips
-                    } label: {
-                        Label("Passes & tickets", systemImage: "ticket")
-                            .frame(minHeight: 44)
-                            .foregroundStyle(TP.white)
                     }
                     NavigationLink {
                         AboutView()
@@ -268,7 +242,7 @@ struct AboutView: View {
                 Text("About & data sources").font(.title2.bold())
                 Text("Travel Planner prices trips from a researched dataset — not live inventory. Prices were checked \(catalog.checkedAt) (dataset v\(catalog.datasetVersion)): flights via Duffel, hotels via Expedia, lift tickets and passes from the official resort shops and Epic.")
                     .font(.body).foregroundStyle(TP.dim)
-                Text("Fully priced today: Ski — West Coast (Park City, Tahoe–Heavenly, Alta/Snowbird, Jackson Hole, Breckenridge) and Ski — Japan (Niseko). Beach, City break, Adventure and Family are coming soon — those trips save their dates and style, and no prices are invented for them.")
+                Text("Two trip types: Ski — West Coast (Park City, Tahoe–Heavenly, Alta/Snowbird, Jackson Hole, Breckenridge) and Ski — Japan (Niseko).")
                     .font(.body).foregroundStyle(TP.dim)
                 Text("Figures marked ~ are estimates (extended day counts, prorated hotel nights, converted currencies). Flights are priced from \(catalog.origin); other origins price everything except the flight, and say so.")
                     .font(.body).foregroundStyle(TP.dim)

@@ -27,9 +27,8 @@ struct TripTypeDef: Decodable, Identifiable {
     let id: String
     let label: String
     let shortLabel: String
-    let status: String  // "ready" | "soon"
+    let status: String  // "ready" — the catalog carries only priced types
     let blurb: String
-    var isReady: Bool { status == "ready" }
 }
 
 struct WindowDef: Decodable, Identifiable {

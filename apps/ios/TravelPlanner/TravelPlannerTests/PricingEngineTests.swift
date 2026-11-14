@@ -223,7 +223,11 @@ final class PricingEngineTests: XCTestCase {
         XCTAssertTrue(result.unpriced.contains("destination"))
     }
 
-    func testComingSoonTripTypeIsUnpriced() {
+    func testRemovedTripTypeFallsBackAndPrices() {
+        // Beach / City break / Adventure / Family were removed from the
+        // catalog. A stale request carrying a removed type id must not
+        // dead-end: the destination drives pricing, so it prices exactly
+        // like the Ski — West Coast trip it falls back to.
         let result = PricingEngine.price(
             PricingRequest(
                 origin: "BOS", tripType: "beach", destinationId: "park-city",

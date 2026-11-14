@@ -75,6 +75,14 @@ const nisekoOpts = niseko.flightOptions || [];
 eq('Niseko Jan flight option count', nisekoOpts.length, 3);
 eq('Niseko Jan anchor includes a checked bag', nisekoOpts.find((o) => o.selected).bagIncluded ? 1 : 0, 1);
 
+// Trip types: the catalog carries exactly two (Beach / City break /
+// Adventure / Family were removed). A stale request for a removed type
+// falls back to Ski — West Coast and prices like it.
+eq('catalog trip type count', catalog.tripTypes.length, 2);
+eq('catalog trip types are the two ski types', catalog.tripTypes.map((t) => t.id).join(',') === 'ski-west,ski-japan' ? 1 : 0, 1);
+const stale = E.price(catalog, req({ tripType: 'beach' }));
+eq('removed type falls back and prices', stale.priced ? 1 : 0, 1);
+eq('removed type fallback flight line', stale.flight.amount, 430.81);
 
 console.log(failures ? `\n${failures} FAILURES` : '\nALL WEB GOLDENS PASS');
 process.exit(failures ? 1 : 0);

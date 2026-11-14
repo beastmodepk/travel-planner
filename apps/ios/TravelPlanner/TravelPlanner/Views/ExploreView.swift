@@ -54,7 +54,7 @@ struct ExploreView: View {
             HStack(spacing: 8) {
                 Chip(label: "All types", selected: prefs.galleryType == "all") { prefs.galleryType = "all" }
                 ForEach(catalog.tripTypes) { type in
-                    Chip(label: type.status == "soon" ? "\(type.shortLabel) · Soon" : type.shortLabel,
+                    Chip(label: type.shortLabel,
                          selected: prefs.galleryType == type.id) {
                         prefs.galleryType = type.id
                     }
@@ -87,40 +87,28 @@ struct ExploreView: View {
 
     @ViewBuilder
     private var gallery: some View {
-        let selectedType = catalog.tripTypes.first { $0.id == prefs.galleryType }
-        if prefs.galleryType != "all", let type = selectedType, !type.isReady {
-            // Designed coming-soon placeholder — never a dead end, never prices.
-            VStack(alignment: .leading, spacing: 10) {
-                Text(type.label).font(.title2.bold())
-                Text(type.blurb).font(.body).foregroundStyle(TP.dim)
-                Text("Trips of this type can be planned and saved today; pricing arrives with research — nothing is invented in the meantime.")
-                    .font(.subheadline).foregroundStyle(TP.faint)
+        let destinations = filteredDestinations()
+        if destinations.isEmpty {
+            VStack(spacing: 12) {
+                Text("Nothing matches \"\(prefs.galleryFilter)\"")
+                    .font(.headline)
+                Button("Clear filter") { prefs.galleryFilter = "" }
+                    .buttonStyle(TertiaryButtonStyle())
             }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(TP.hairline, lineWidth: 1))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
         } else {
-            let destinations = filteredDestinations()
-            if destinations.isEmpty {
-                VStack(spacing: 12) {
-                    Text("Nothing matches \"\(prefs.galleryFilter)\"")
-                        .font(.headline)
-                    Button("Clear filter") { prefs.galleryFilter = "" }
-                        .buttonStyle(TertiaryButtonStyle())
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 32)
-            } else {
-                ForEach(destinations) { dest in
-                    destinationCard(dest)
-                }
+            ForEach(destinations) { dest in
+                destinationCard(dest)
             }
         }
     }
 
     private func filteredDestinations() -> [Destination] {
         var list = catalog.destinations
-        if prefs.galleryType != "all" {
+        // A persisted filter may name a removed trip type — ignore it
+        // (treat as "all") rather than showing an empty gallery.
+        if prefs.galleryType != "all", catalog.tripTypes.contains(where: { $0.id == prefs.galleryType }) {
             list = list.filter { $0.tripTypeID == prefs.galleryType }
         }
         let q = prefs.galleryFilter.trimmingCharacters(in: .whitespaces).lowercased()
