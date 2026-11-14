@@ -810,16 +810,32 @@
     </div>${tabbar()}`;
   }
 
+  // About provenance copy (same sources as the iOS About): presentational
+  // text, kept here so renderAbout never depends on optional dataset keys.
+  // The Epic ladder itself is read from the dataset's canonical epicPass
+  // block — the same data the pricing engine uses.
+  const ABOUT_SOURCES = [
+    { label: 'Flights (Duffel)', detail: 'Round-trip fares for the December and January windows, checked Nov 13, 2026. Flight options are a researched snapshot with representative schedules; live prices and times are on Google Flights.' },
+    { label: 'Hotels (Expedia)', detail: 'Room prices including taxes for the December and January windows, checked Nov 13, 2026. Each hotel links to its Expedia property page for the live price.' },
+    { label: 'Lift tickets & passes (official resort shops and Epic)', detail: 'Jackson Hole, Niseko United and Alta ticket prices, transfer and rental rates, and the Epic Day Pass ladder, from the official resort and Epic Pass pages, checked Nov 13, 2026.' },
+  ];
+
   function renderAbout() {
+    const sources = (catalog.about && catalog.about.sources) || ABOUT_SOURCES;
+    const ladder = catalog.epicLadder
+      || (catalog.epicPass ? catalog.epicPass.ladder.map((r) => [r.days, r.price, !r.estimate]) : []);
+    const fullPassPrice = catalog.fullPassPrice != null
+      ? catalog.fullPassPrice
+      : (catalog.epicPass ? catalog.epicPass.fullPassPrice : null);
     return `<div class="wrap">
       <button class="btn-tertiary" onclick="TP.go('more')">‹ More</button>
       <h1>About &amp; data sources</h1>
       <p>Travel Planner prices trips from a researched dataset and never books anything. Booking buttons open the seller's own site (Expedia for hotels, Google Flights for air) with your dates pre-filled — you always buy directly, at their live price.</p>
       <h2>Where the numbers come from</h2>
-      ${catalog.about.sources.map((s) => `<p><strong>${esc(s.label)}</strong> — ${esc(s.detail)}</p>`).join('')}
+      ${sources.map((s) => `<p><strong>${esc(s.label)}</strong> — ${esc(s.detail)}</p>`).join('')}
       <h2>The Epic Pass ladder</h2>
-      <p>Rungs: ${catalog.epicLadder.map(([days, price, exact]) => `${days}-day ${money(price)}${exact ? '' : ' ~'}`).join(' · ')} · Full Epic Pass ${money(catalog.fullPassPrice)}.</p>
-      <p class="faint">~ = estimate rung — only the 3-day ($386) and 6-day ($640) rungs are exact published prices.</p>
+      <p>Rungs: ${ladder.map(([days, price, exact]) => `${days}-day ${money(price)}${exact ? '' : ' ~'}`).join(' · ')} · Full Epic Pass ${money(fullPassPrice)}.</p>
+      <p class="faint">~ = estimate rung — only the 3-day ($386) rung is an exact published price; the 6-day rung is $640.</p>
       <h2>Privacy</h2>
       <p>No accounts, no tracking, no analytics. Your profile, trips and brochures live in this browser's local storage and never leave it, except a brochure you explicitly queue for the assistant to send from partheysmusebot@gmail.com.</p>
       <p class="faint">Travel Planner v1.0 · Dataset checked ${esc(catalog.checkedAt)}</p>
