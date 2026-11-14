@@ -1,0 +1,830 @@
+{
+  "datasetVersion": 1,
+  "checkedAt": "2026-11-13",
+  "origin": "BOS",
+  "currency": "USD",
+  "tripTypes": [
+    {
+      "id": "ski-west",
+      "label": "Ski — West Coast",
+      "shortLabel": "Ski — West Coast",
+      "status": "ready",
+      "blurb": "Park City, Tahoe, Alta, Jackson Hole & Breckenridge — fully priced with flights, hotels, passes & gear."
+    },
+    {
+      "id": "ski-japan",
+      "label": "Ski — Japan",
+      "shortLabel": "Ski — Japan",
+      "status": "ready",
+      "blurb": "Niseko, Hokkaido — Japow, Hirafu village nightlife, Ikon-covered lifts — fully priced with flights, hotels, lifts & gear."
+    },
+    {
+      "id": "beach",
+      "label": "Beach",
+      "shortLabel": "Beach",
+      "status": "soon",
+      "blurb": "Warm-weather beach trips — pricing coming soon. Dates, style & travellers are saved."
+    },
+    {
+      "id": "city",
+      "label": "City break",
+      "shortLabel": "City break",
+      "status": "soon",
+      "blurb": "City weekends & breaks — pricing coming soon. Dates, style & travellers are saved."
+    },
+    {
+      "id": "adventure",
+      "label": "Adventure",
+      "shortLabel": "Adventure",
+      "status": "soon",
+      "blurb": "Hiking, road trips & outdoor adventure — pricing coming soon."
+    },
+    {
+      "id": "family",
+      "label": "Family",
+      "shortLabel": "Family",
+      "status": "soon",
+      "blurb": "Family-friendly trips for groups — pricing coming soon."
+    }
+  ],
+  "windows": [
+    {
+      "id": "dec",
+      "label": "December · Sat Dec 19 – Wed Dec 23, 2026",
+      "start": "2026-12-19",
+      "end": "2026-12-23"
+    },
+    {
+      "id": "jan",
+      "label": "January · Sat Jan 9 – Wed Jan 13, 2027",
+      "start": "2027-01-09",
+      "end": "2027-01-13"
+    }
+  ],
+  "styles": [
+    {
+      "id": "cheap",
+      "label": "Cheap",
+      "blurb": "Basic fare, value hotel, cheapest gear"
+    },
+    {
+      "id": "balanced",
+      "label": "Balanced",
+      "blurb": "Basic fare, comfort hotel, cheapest gear"
+    },
+    {
+      "id": "expensive",
+      "label": "Expensive",
+      "blurb": "Flex fare, premium hotel, premium rentals"
+    },
+    {
+      "id": "social",
+      "label": "Best Social",
+      "blurb": "The most social hotel at each destination"
+    },
+    {
+      "id": "snow",
+      "label": "Best Snow",
+      "blurb": "Comfort hotel, basic fare, cheapest gear"
+    }
+  ],
+  "epicPass": {
+    "program": "epic",
+    "name": "Epic",
+    "ladder": [
+      {
+        "days": 1,
+        "price": 211,
+        "estimate": true
+      },
+      {
+        "days": 2,
+        "price": 296,
+        "estimate": true
+      },
+      {
+        "days": 3,
+        "price": 386,
+        "estimate": false
+      },
+      {
+        "days": 4,
+        "price": 480,
+        "estimate": true
+      },
+      {
+        "days": 5,
+        "price": 560,
+        "estimate": true
+      },
+      {
+        "days": 6,
+        "price": 640,
+        "estimate": true
+      },
+      {
+        "days": 7,
+        "price": 715,
+        "estimate": true
+      },
+      {
+        "days": 8,
+        "price": 790,
+        "estimate": true
+      },
+      {
+        "days": 9,
+        "price": 865,
+        "estimate": true
+      },
+      {
+        "days": 10,
+        "price": 940,
+        "estimate": true
+      }
+    ],
+    "fullPassPrice": 1169,
+    "note": "Epic Day Pass prices rise Nov 15, 2026 and the pass is non-refundable; neither the December nor the January window hits its blackout dates.",
+    "linkUrl": "https://www.epicpass.com",
+    "linkLabel": "Epic Pass"
+  },
+  "nonEpicLift": {
+    "jackson": {
+      "dec": {
+        "threeOfFour": 782.58,
+        "singleDay": 274.59
+      },
+      "jan": {
+        "threeOfFour": 618.34,
+        "singleDay": 216.96
+      }
+    },
+    "niseko": {
+      "dec": {
+        "threeDay": 232,
+        "fourDay": 310,
+        "seasonNote": "Regular season ¥12,600/day"
+      },
+      "jan": {
+        "threeDay": 255,
+        "fourDay": 335,
+        "seasonNote": "Peak season (3-day pass ¥39,500)"
+      }
+    },
+    "alta": {
+      "decPerDay": 200,
+      "janPerDay": 195
+    }
+  },
+  "carryBagFee": 90,
+  "destinations": [
+    {
+      "id": "park-city",
+      "name": "Park City",
+      "shortName": "Park City",
+      "state": "Utah",
+      "airport": "SLC",
+      "region": "west",
+      "tripTypeID": "ski-west",
+      "epic": true,
+      "socialScore": 9,
+      "snowScore": 7,
+      "tags": [
+        "groomers",
+        "parks",
+        "gentle"
+      ],
+      "blurb": "Main Street bars and cafés for the workdays, a huge blue-run network, and 40 minutes from the airport.",
+      "socialTier": "comfort",
+      "transfers": 110,
+      "transfersDetail": "SLC airport shuttle, round trip",
+      "flights": {
+        "dec": {
+          "basic": 430.81,
+          "flex": 560.8
+        },
+        "jan": {
+          "basic": 458.8,
+          "flex": 628.8
+        }
+      },
+      "flightDetail": {
+        "dec": "JetBlue nonstop · BOS–SLC",
+        "jan": "Delta nonstop · BOS–SLC"
+      },
+      "hotels": {
+        "dec": {
+          "value": {
+            "name": "GetAways at Park Regency Resort",
+            "expediaId": "8645692",
+            "price": 765.44,
+            "tags": [
+              "Value",
+              "Work-friendly"
+            ]
+          },
+          "comfort": {
+            "name": "Chateau Apres Lodge",
+            "expediaId": "5692776",
+            "price": 883.48,
+            "tags": [
+              "Comfort",
+              "Social"
+            ]
+          },
+          "premium": {
+            "name": "Crestview Condominiums",
+            "expediaId": "903163",
+            "price": 966.19,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly"
+            ]
+          }
+        },
+        "jan": {
+          "value": {
+            "name": "GetAways at Park Regency Resort",
+            "expediaId": "8645692",
+            "price": 727.06,
+            "tags": [
+              "Value",
+              "Work-friendly"
+            ]
+          },
+          "comfort": {
+            "name": "Sweetwater Lift Lodge",
+            "expediaId": "1741561",
+            "price": 900.44,
+            "tags": [
+              "Comfort",
+              "Social"
+            ]
+          },
+          "premium": {
+            "name": "Holiday Inn Express Park City",
+            "expediaId": "84745",
+            "price": 899.3,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly"
+            ]
+          }
+        }
+      },
+      "rentalPerDay": 51,
+      "rentalEstimate": false,
+      "rentalName": "Aloha Ski Rentals · Gold package",
+      "rentalUrl": "https://www.parkcityskirentals.com",
+      "bootsPerDay": 49,
+      "bootsEstimate": false,
+      "ticketUrl": "https://www.epicpass.com",
+      "ticketLinkLabel": "Epic Pass",
+      "hotelSearchName": "Park City, Utah",
+      "photoAsset": "park-city",
+      "photoURL": null,
+      "photoAlt": "Park City Main Street in winter"
+    },
+    {
+      "id": "tahoe",
+      "name": "Tahoe — Heavenly",
+      "shortName": "Tahoe",
+      "state": "California",
+      "airport": "RNO",
+      "region": "west",
+      "tripTypeID": "ski-west",
+      "epic": true,
+      "socialScore": 9,
+      "snowScore": 6,
+      "tags": [
+        "groomers",
+        "gentle"
+      ],
+      "blurb": "Heavenly above Lake Tahoe, casino nightlife in South Lake — but the flight is one stop, the long way round.",
+      "socialTier": "premium",
+      "transfers": 59.5,
+      "transfersDetail": "Reno airport shuttle, round trip",
+      "flights": {
+        "dec": {
+          "basic": 608.4,
+          "flex": 738.4
+        },
+        "jan": {
+          "basic": 398.4,
+          "flex": 528.41
+        }
+      },
+      "flightDetail": {
+        "dec": "Delta · 1 stop · BOS–Reno",
+        "jan": "Delta · 1 stop · BOS–Reno"
+      },
+      "hotels": {
+        "dec": {
+          "value": {
+            "name": "Apex Inn, South Lake Tahoe",
+            "expediaId": "8116351",
+            "price": 484.16,
+            "tags": [
+              "Value"
+            ]
+          },
+          "comfort": {
+            "name": "Econo Lodge Heavenly Village Area",
+            "expediaId": "4520390",
+            "price": 558.07,
+            "tags": [
+              "Comfort",
+              "Social"
+            ]
+          },
+          "premium": {
+            "name": "Golden Nugget Hotel & Casino Lake Tahoe",
+            "expediaId": "9173794",
+            "price": 552.58,
+            "tags": [
+              "Premium",
+              "Social"
+            ]
+          }
+        },
+        "jan": {
+          "value": {
+            "name": "Apex Inn, South Lake Tahoe",
+            "expediaId": "8116351",
+            "price": 410.24,
+            "tags": [
+              "Value"
+            ]
+          },
+          "comfort": {
+            "name": "Econo Lodge Heavenly Village Area",
+            "expediaId": "4520390",
+            "price": 453.9,
+            "tags": [
+              "Comfort",
+              "Social"
+            ]
+          },
+          "premium": {
+            "name": "Camp Richardson Historic Resort",
+            "expediaId": "106035785",
+            "price": 449.44,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly"
+            ]
+          }
+        }
+      },
+      "rentalPerDay": 55,
+      "rentalEstimate": true,
+      "rentalName": "Heavenly area rentals · performance package",
+      "rentalUrl": "https://www.skiheavenly.com",
+      "bootsPerDay": 52,
+      "bootsEstimate": true,
+      "ticketUrl": "https://www.epicpass.com",
+      "ticketLinkLabel": "Epic Pass",
+      "hotelSearchName": "South Lake Tahoe, California",
+      "photoAsset": "tahoe",
+      "photoURL": null,
+      "photoAlt": "Heavenly ski area above Lake Tahoe"
+    },
+    {
+      "id": "alta",
+      "name": "Alta / Snowbird",
+      "shortName": "Alta",
+      "state": "Utah",
+      "airport": "SLC",
+      "region": "west",
+      "tripTypeID": "ski-west",
+      "epic": false,
+      "socialScore": 4,
+      "snowScore": 10,
+      "tags": [
+        "bowls",
+        "steeps"
+      ],
+      "blurb": "The best snow in America and the cheapest base of the five — but evenings in Sandy are quiet.",
+      "socialTier": "comfort",
+      "transfers": 100,
+      "transfersDetail": "Canyon transfers, round trip",
+      "flights": {
+        "dec": {
+          "basic": 430.81,
+          "flex": 560.8
+        },
+        "jan": {
+          "basic": 458.8,
+          "flex": 628.8
+        }
+      },
+      "flightDetail": {
+        "dec": "JetBlue nonstop · BOS–SLC",
+        "jan": "Delta nonstop · BOS–SLC"
+      },
+      "hotels": {
+        "dec": {
+          "value": {
+            "name": "Quality Inn Midvale",
+            "expediaId": "43045",
+            "price": 216.69,
+            "tags": [
+              "Value",
+              "Work-friendly"
+            ]
+          },
+          "comfort": {
+            "name": "Ramada by Wyndham Draper",
+            "expediaId": "43037",
+            "price": 265.44,
+            "tags": [
+              "Comfort",
+              "Work-friendly"
+            ]
+          },
+          "premium": {
+            "name": "Comfort Inn Murray",
+            "expediaId": "1214810",
+            "price": 345.04,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly"
+            ]
+          }
+        },
+        "jan": {
+          "value": {
+            "name": "Quality Inn Midvale",
+            "expediaId": "43045",
+            "price": 268.92,
+            "tags": [
+              "Value",
+              "Work-friendly"
+            ]
+          },
+          "comfort": {
+            "name": "Royal Inn Midvale",
+            "expediaId": "456587",
+            "price": 295.27,
+            "tags": [
+              "Comfort",
+              "Work-friendly"
+            ]
+          },
+          "premium": {
+            "name": "Majestic Rockies Motel, Sandy",
+            "expediaId": null,
+            "price": 370.74,
+            "tags": [
+              "Premium",
+              "Comfort"
+            ]
+          }
+        }
+      },
+      "rentalPerDay": 50,
+      "rentalEstimate": true,
+      "rentalName": "Little Cottonwood area rentals",
+      "rentalUrl": "https://www.alta.com",
+      "bootsPerDay": 48,
+      "bootsEstimate": true,
+      "ticketUrl": "https://www.snowbird.com/tickets-passes/tickets/",
+      "ticketLinkLabel": "Snowbird tickets",
+      "hotelSearchName": "Midvale, Utah",
+      "photoAsset": "alta",
+      "photoURL": null,
+      "photoAlt": "Alta Lodge in Little Cottonwood Canyon"
+    },
+    {
+      "id": "jackson",
+      "name": "Jackson Hole",
+      "shortName": "Jackson",
+      "state": "Wyoming",
+      "airport": "JAC",
+      "region": "west",
+      "tripTypeID": "ski-west",
+      "epic": false,
+      "socialScore": 7,
+      "snowScore": 8,
+      "tags": [
+        "bowls",
+        "steeps"
+      ],
+      "blurb": "The bowls trip — steep, cold, glorious in January, and the priciest lift tickets in the country.",
+      "socialTier": "premium",
+      "transfers": 72,
+      "transfersDetail": "Airport transfers & ski bus",
+      "flights": {
+        "dec": {
+          "basic": 540.41,
+          "flex": 660.4
+        },
+        "jan": {
+          "basic": 483.4,
+          "flex": 613.4
+        }
+      },
+      "flightDetail": {
+        "dec": "Delta · BOS–Jackson",
+        "jan": "American · 1 stop · BOS–Jackson"
+      },
+      "hotels": {
+        "dec": {
+          "value": {
+            "name": "Cache House hostel pod",
+            "expediaId": "45027224",
+            "price": 214.37,
+            "tags": [
+              "Value",
+              "Social"
+            ]
+          },
+          "comfort": {
+            "name": "Jackson SouthTown",
+            "expediaId": "996352",
+            "price": 631.44,
+            "tags": [
+              "Comfort",
+              "Work-friendly"
+            ]
+          },
+          "premium": {
+            "name": "Elk Country Inn",
+            "expediaId": "889889",
+            "price": 650.73,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly"
+            ]
+          }
+        },
+        "jan": {
+          "value": {
+            "name": "Super 8 Jackson Hole",
+            "expediaId": "40142",
+            "price": 494.84,
+            "tags": [
+              "Value",
+              "Work-friendly"
+            ]
+          },
+          "comfort": {
+            "name": "Miller Park Lodge",
+            "expediaId": "5431023",
+            "price": 502.65,
+            "tags": [
+              "Comfort",
+              "Social",
+              "Work-friendly"
+            ]
+          },
+          "premium": {
+            "name": "Elk Country Inn",
+            "expediaId": "889889",
+            "price": 816.71,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly"
+            ]
+          }
+        }
+      },
+      "rentalPerDay": 65,
+      "rentalEstimate": false,
+      "rentalName": "JH Skis · Performance package",
+      "rentalUrl": "https://www.jacksonhole.com",
+      "bootsPerDay": 60,
+      "bootsEstimate": true,
+      "ticketUrl": "https://www.jacksonhole.com",
+      "ticketLinkLabel": "Jackson Hole tickets",
+      "hotelSearchName": "Jackson, Wyoming",
+      "photoAsset": "jackson",
+      "photoURL": null,
+      "photoAlt": "Jackson Hole tram and bowls"
+    },
+    {
+      "id": "breckenridge",
+      "name": "Breckenridge",
+      "shortName": "Breckenridge",
+      "state": "Colorado",
+      "airport": "DEN",
+      "region": "west",
+      "tripTypeID": "ski-west",
+      "epic": true,
+      "socialScore": 8,
+      "snowScore": 6,
+      "tags": [
+        "groomers",
+        "parks",
+        "gentle"
+      ],
+      "blurb": "A Victorian Main Street made for evenings out — but you sleep at 9,600 ft and the bowls often open in January.",
+      "socialTier": "comfort",
+      "transfers": 140,
+      "transfersDetail": "Denver airport shuttle, round trip",
+      "flights": {
+        "dec": {
+          "basic": 447.79,
+          "flex": 547.8
+        },
+        "jan": {
+          "basic": 348.81,
+          "flex": 448.8
+        }
+      },
+      "flightDetail": {
+        "dec": "JetBlue nonstop · BOS–Denver",
+        "jan": "Southwest nonstop · BOS–Denver"
+      },
+      "hotels": {
+        "dec": {
+          "value": {
+            "name": "Luxury Inn, Silverthorne (15 min away)",
+            "expediaId": null,
+            "price": 553.96,
+            "tags": [
+              "Value",
+              "Work-friendly"
+            ]
+          },
+          "comfort": {
+            "name": "Couple's Ski Condo, in town",
+            "expediaId": null,
+            "price": 1193.6,
+            "tags": [
+              "Comfort",
+              "Work-friendly"
+            ]
+          },
+          "premium": {
+            "name": "Four O'Clock Lodge",
+            "expediaId": "71459467",
+            "price": 1330.0,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Social"
+            ]
+          }
+        },
+        "jan": {
+          "value": {
+            "name": "The Block Hotel, Silverthorne",
+            "expediaId": null,
+            "price": 415.0,
+            "tags": [
+              "Value",
+              "Social"
+            ]
+          },
+          "comfort": {
+            "name": "Der Steiermark, in town",
+            "expediaId": "2403868",
+            "price": 988.79,
+            "tags": [
+              "Comfort",
+              "Work-friendly"
+            ]
+          },
+          "premium": {
+            "name": "Hyatt Vacation Club at The Ranahan",
+            "expediaId": "37590066",
+            "price": 1025.5,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly",
+              "Social"
+            ]
+          }
+        }
+      },
+      "rentalPerDay": 52,
+      "rentalEstimate": false,
+      "rentalName": "Charter Sports · Performance package",
+      "rentalUrl": "https://chartersports.com",
+      "bootsPerDay": 49,
+      "bootsEstimate": false,
+      "ticketUrl": "https://www.epicpass.com",
+      "ticketLinkLabel": "Epic Pass",
+      "hotelSearchName": "Breckenridge, Colorado",
+      "photoAsset": "breckenridge",
+      "photoURL": null,
+      "photoAlt": "Breckenridge Main Street in winter"
+    },
+    {
+      "id": "niseko",
+      "name": "Niseko — Hirafu",
+      "shortName": "Niseko",
+      "state": "Hokkaido, Japan",
+      "airport": "CTS",
+      "region": "japan",
+      "tripTypeID": "ski-japan",
+      "epic": false,
+      "socialScore": 8,
+      "snowScore": 10,
+      "tags": [
+        "bowls",
+        "groomers",
+        "steeps"
+      ],
+      "blurb": "Japow — some of the deepest powder on earth, a lively Hirafu village for evenings, and a long haul from Boston: you land Monday on a Sat–Wed shape.",
+      "socialTier": "comfort",
+      "transfers": 80,
+      "transfersDetail": "Airport bus CTS↔Niseko (~3 hrs), round trip",
+      "flights": {
+        "dec": {
+          "basic": 5268.29,
+          "flex": 5568.29
+        },
+        "jan": {
+          "basic": 1228.19,
+          "flex": 1392.19
+        }
+      },
+      "flightDetail": {
+        "dec": "Lufthansa · 2 stops · BOS–CTS (New Chitose)",
+        "jan": "American / JAL · 1 stop · BOS–CTS (New Chitose)"
+      },
+      "hotels": {
+        "dec": {
+          "value": {
+            "name": "Niseko Backcountry Lodge – Hostel",
+            "expediaId": "19906757",
+            "price": 183.39,
+            "tags": [
+              "Value",
+              "Social"
+            ]
+          },
+          "comfort": {
+            "name": "Yellow House Niseko",
+            "expediaId": "108257631",
+            "price": 311.0,
+            "tags": [
+              "Comfort",
+              "Social"
+            ]
+          },
+          "premium": {
+            "name": "Ramat Niseko",
+            "expediaId": "23142622",
+            "price": 324.98,
+            "tags": [
+              "Premium",
+              "Comfort",
+              "Work-friendly"
+            ]
+          }
+        },
+        "jan": {
+          "value": {
+            "name": "Ramat Niseko",
+            "expediaId": "23142622",
+            "price": 405.75,
+            "tags": [
+              "Value",
+              "Comfort",
+              "Work-friendly"
+            ]
+          },
+          "comfort": {
+            "name": "Torifito Hotel And Pod Niseko",
+            "expediaId": "58975020",
+            "price": 434.02,
+            "tags": [
+              "Comfort",
+              "Social"
+            ]
+          },
+          "premium": {
+            "name": null,
+            "expediaId": null,
+            "price": null,
+            "tags": [
+              "Premium"
+            ]
+          }
+        }
+      },
+      "rentalPerDay": 55,
+      "rentalEstimate": true,
+      "rentalName": "Rhythm Japan · standard package",
+      "rentalUrl": "https://www.rhythmjapan.com",
+      "bootsPerDay": 50,
+      "bootsEstimate": true,
+      "ticketUrl": "https://www.niseko.ne.jp/en/lift/",
+      "ticketLinkLabel": "Niseko United lift passes",
+      "hotelSearchName": "Niseko, Hokkaido",
+      "photoAsset": "niseko",
+      "photoURL": null,
+      "photoAlt": "Niseko Annupuri in deep powder"
+    }
+  ]
+}
