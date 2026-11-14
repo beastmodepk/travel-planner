@@ -11,7 +11,7 @@ final class PricingEngineTests: XCTestCase {
     private var catalog: Catalog!
     private var service: PricingService!
 
-    override func setUpWithError() throws {
+    override func setUp() async throws {
         catalog = try CatalogLoader.loadBundled()
         service = PricingService(catalog: catalog)
     }
