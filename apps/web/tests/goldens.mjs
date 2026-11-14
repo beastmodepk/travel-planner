@@ -58,5 +58,23 @@ eq('priceFrom Niseko Jan', E.priceFrom(catalog, catalog.destinations.find((d) =>
 const jackson = E.price(catalog, req({ destinationId: 'jackson', destinationName: 'Jackson Hole', windowSelection: 'jan', departDate: '2027-01-09', returnDate: '2027-01-13', skiDays: 4, style: 'balanced', hotelTier: 'comfort', gear: 'own-boots' }));
 eq('Jackson 4-day Jan lift', jackson.liftTicket && jackson.liftTicket.amount, 835.30);
 
+// Flight options: 3 per window; default selection is the researched anchor
+// fare for the fare class; an explicit pick drives the Flight line.
+const pcDest = catalog.destinations.find((d) => d.id === 'park-city');
+eq('PC Dec flight option count', pc.flightOptions.length, 3);
+eq('PC Dec default flight is the anchor', pc.flight.amount, 430.81);
+const aaOption = pc.flightOptions.find((o) => o.airline === 'American');
+const pcAA = E.price(catalog, req({ flightOptionId: aaOption.id }));
+eq('PC Dec picked flight (American 1-stop)', pcAA.flight.amount, 489.20);
+eq('PC Dec picked flight option id', pcAA.flight.optionId === aaOption.id ? 1 : 0, 1);
+const pcFlex = E.price(catalog, req({ fareClass: 'flex' }));
+eq('PC Dec flex anchor fare', pcFlex.flight.amount, 560.80);
+eq('Tahoe Jan default flight is the anchor', tahoe.flight.amount, 398.40);
+eq('Niseko Jan default flight is the anchor', niseko.flight.amount, 1228.19);
+const nisekoOpts = niseko.flightOptions || [];
+eq('Niseko Jan flight option count', nisekoOpts.length, 3);
+eq('Niseko Jan anchor includes a checked bag', nisekoOpts.find((o) => o.selected).bagIncluded ? 1 : 0, 1);
+
+
 console.log(failures ? `\n${failures} FAILURES` : '\nALL WEB GOLDENS PASS');
 process.exit(failures ? 1 : 0);

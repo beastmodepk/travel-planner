@@ -27,8 +27,8 @@
   const phaseLabel = (id) => (PHASES.find((p) => p.id === id) || PHASES[0]).label;
 
   const DEFAULT_PROFILE = { name: '', email: '', homeAirport: 'BOS', level: 'intermediate', terrain: ['mix'], travelStyle: 'balanced', vibe: 'mix', remoteWork: false, gearOwned: 'rent', passHeld: 'none', group: 'solo', onboarded: false };
-  const DEFAULT_TRIP_1 = { destination: 'park-city', title: '', tripType: 'ski-west', window: 'dec', startDate: '2026-12-19', endDate: '2026-12-23', skiDays: 3, style: 'social', fareClass: 'basic', hotelTier: 'comfort', hotelSelections: ['comfort'], gear: 'auto', phase: 'plan' };
-  const DEFAULT_TRIP_2 = { destination: 'tahoe', title: '', tripType: 'ski-west', window: 'jan', startDate: '2027-01-09', endDate: '2027-01-13', skiDays: 3, style: 'cheap', fareClass: 'basic', hotelTier: 'value', hotelSelections: ['value'], gear: 'auto', phase: 'plan' };
+  const DEFAULT_TRIP_1 = { destination: 'park-city', title: '', tripType: 'ski-west', window: 'dec', startDate: '2026-12-19', endDate: '2026-12-23', skiDays: 3, style: 'social', fareClass: 'basic', flightOptionId: null, hotelTier: 'comfort', hotelSelections: ['comfort'], gear: 'auto', phase: 'plan' };
+  const DEFAULT_TRIP_2 = { destination: 'tahoe', title: '', tripType: 'ski-west', window: 'jan', startDate: '2027-01-09', endDate: '2027-01-13', skiDays: 3, style: 'cheap', fareClass: 'basic', flightOptionId: null, hotelTier: 'value', hotelSelections: ['value'], gear: 'auto', phase: 'plan' };
 
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -84,7 +84,8 @@
       departDate: trip.startDate, returnDate: trip.endDate,
       windowSelection: trip.window, skiDays: trip.skiDays,
       travellers: state.settings.travellers, style: trip.style,
-      fareClass: trip.fareClass, hotelTier: trip.hotelTier, gear: trip.gear,
+      fareClass: trip.fareClass, flightOptionId: trip.flightOptionId || null,
+      hotelTier: trip.hotelTier, gear: trip.gear,
       heldPass: state.profile ? state.profile.passHeld : 'none',
     };
   }
@@ -363,6 +364,7 @@
 
   function tripCard(trip, assembled, highlight) {
     const dest = trip.custom ? null : destById(trip.destination);
+    const flightLine = assembled && assembled.lines ? assembled.lines.find((l) => l.key === 'flight' && l.summary) : null;
     const styleLabel = (catalog.styles.find((s) => s.id === trip.style) || {}).label || trip.style;
     const suggestion = phaseSuggestion(trip);
     const dismissed = state.ui.dismissedSuggestions[trip.id];
@@ -384,6 +386,7 @@
       <div class="card-body">
         <h3 style="margin-top:0">${esc(tripTitle(trip))}</h3>
         <p class="dim" style="margin:2px 0">${esc(trip.startDate)} – ${esc(trip.endDate)} · ${trip.skiDays} ski day${trip.skiDays === 1 ? '' : 's'} · ${esc(styleLabel)}</p>
+        ${flightLine ? `<p class="faint" style="margin:2px 0;font-size:13px">✈ ${esc(flightLine.summary)} · ${money(flightLine.amount)}</p>` : ''}
         ${suggestion && !dismissed ? `<div class="warn"><p style="margin:0 0 6px;color:var(--ink)">${esc(suggestion.message)}</p>
           <button class="btn-tertiary" onclick="TP.setPhase('${trip.id}','${suggestion.target}')">Move</button>
           <button class="btn-tertiary" onclick="TP.dismissSuggestion('${trip.id}')">Not now</button></div>` : ''}

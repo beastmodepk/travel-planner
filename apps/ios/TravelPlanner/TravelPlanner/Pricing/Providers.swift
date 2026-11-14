@@ -27,7 +27,7 @@ struct AiResearchProvider: PricingProvider {
     func price(_ request: PricingRequest) async -> PricingResult {
         PricingResult(
             source: id, sourceLabel: label, checkedAt: "",
-            priced: false, flight: nil, transfers: nil, hotelOptions: [], liftTicket: nil,
+            priced: false, flight: nil, flightOptions: [], transfers: nil, hotelOptions: [], liftTicket: nil,
             passProgram: nil, passDays: request.skiDays, rentalPerDay: nil, gearOptions: [],
             chosenGearKey: nil, unpriced: ["provider"],
             notes: ["AI research is not configured in this build — showing the researched dataset instead."])

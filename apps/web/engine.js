@@ -94,20 +94,53 @@
   const TIERS = ['value', 'comfort', 'premium'];
   const TIER_LABEL = { value: 'Value', comfort: 'Comfort', premium: 'Premium' };
 
+  // Flight options: Google-Flights-style lists per destination/window.
+  // Default selection = the option flagged `anchor` for the request's fare
+  // class (the exact researched fare); an explicit flightOptionId always
+  // wins. Same rule as the iOS engine — see packages/dataset.
+  function stopsLabel(leg) {
+    if (leg.stops === 0) return 'Nonstop';
+    return `${leg.stops} stop${leg.stops === 1 ? '' : 's'}${leg.via ? ` · ${leg.via}` : ''}`;
+  }
+  function stopsShort(leg) {
+    return leg.stops === 0 ? 'Nonstop' : `${leg.stops} stop${leg.stops === 1 ? '' : 's'}`;
+  }
+  function selectFlight(options, fareClass, optionId) {
+    if (!options || !options.length) return null;
+    if (optionId) {
+      const picked = options.find((o) => o.id === optionId);
+      if (picked) return picked;
+    }
+    const anchor = options.find((o) => o.anchor && o.fareClass === fareClass);
+    if (anchor) return anchor;
+    const sameClass = options.filter((o) => o.fareClass === fareClass);
+    const pool = sameClass.length ? sameClass : options;
+    return pool.reduce((best, o) => (o.price < best.price ? o : best), pool[0]);
+  }
+  function flightOptionView(o, origin, airport, travellers, selectedId) {
+    const dayTag = (leg) => (leg.arriveNextDay ? ` +${leg.arriveNextDay}` : '');
+    return { id: o.id, airline: o.airline, fareClass: o.fareClass,
+      pricePerPerson: o.price, amount: round2(o.price * travellers),
+      tags: o.tags.slice(), bagIncluded: o.bagIncluded === true,
+      outbound: { ...o.outbound }, inbound: { ...o.return },
+      selected: o.id === selectedId,
+      summary: `${o.airline} · ${o.outbound.depart} → ${o.outbound.arrive}${dayTag(o.outbound)} · ${stopsShort(o.outbound)}`,
+      detail: `Out ${o.outbound.depart} → ${o.outbound.arrive}${dayTag(o.outbound)} · ${o.outbound.duration} · ${stopsLabel(o.outbound)} · Back ${o.return.depart} → ${o.return.arrive}${dayTag(o.return)} · ${o.return.duration} · ${stopsLabel(o.return)} · ${o.fareClass === 'flex' ? 'Flex fare (free changes)' : 'Basic fare'}${o.bagIncluded ? ' · 1 checked bag included' : ''} · round trip ${origin}–${airport}` };
+  }
+
   function emptyResult(catalog, req, notes, unpriced) {
     return { source: 'dataset', sourceLabel: 'Researched dataset', checkedAt: catalog.checkedAt,
-      priced: false, flight: null, transfers: null, hotelOptions: [], liftTicket: null,
+      priced: false, flight: null, flightOptions: [], transfers: null, hotelOptions: [], liftTicket: null,
       passProgram: null, passDays: req.skiDays, rentalPerDay: null, gearOptions: [],
       chosenGearKey: null, unpriced, notes };
   }
 
   function price(catalog, req) {
+    // The catalog carries exactly two trip types (ski-west, ski-japan).
+    // Anything else is a stale id from a removed type — fall back to
+    // Ski — West Coast rather than leaving the trip unpriced.
     if (req.tripType !== 'ski-west' && req.tripType !== 'ski-japan') {
-      const type = catalog.tripTypes.find((t) => t.id === req.tripType);
-      const label = type ? type.label : req.tripType;
-      return emptyResult(catalog, req,
-        [`Pricing for ${label} trips is coming soon — your dates, style and place are saved here. No numbers have been invented for this type yet; Ski — West Coast and Ski — Japan are fully priced today.`],
-        ['trip-type']);
+      req = { ...req, tripType: 'ski-west' };
     }
     const dest = req.custom ? null : catalog.destinations.find((d) => d.id === req.destinationId);
     if (!dest) {
@@ -126,12 +159,19 @@
     const partyNote = t > 1 ? ` · × ${t} travellers` : '';
 
     let flight = null;
+    let flightOptions = [];
     if (req.origin.toUpperCase() === catalog.origin) {
-      const fare = dest.flights[window][req.fareClass];
-      flight = { key: 'flight', label: `Flight · ${dest.flightDetail[window]}`,
-        detail: `${req.fareClass === 'flex' ? 'Flex fare (free changes)' : 'Basic fare (cheapest sensible)'} · round trip ${req.origin}–${dest.airport}${partyNote}`,
-        amount: perParty(fare), estimate: false,
-        linkUrl: googleFlightsUrl(req.origin.toUpperCase(), dest, req.departDate, req.returnDate), linkLabel: 'Google Flights' };
+      const options = dest.flights[window] || [];
+      const chosen = selectFlight(options, req.fareClass, req.flightOptionId || null);
+      if (chosen) {
+        flightOptions = options.map((o) => flightOptionView(o, req.origin.toUpperCase(), dest.airport, t, chosen.id));
+        const view = flightOptions.find((v) => v.id === chosen.id);
+        flight = { key: 'flight', label: `Flight · ${chosen.airline} · ${req.origin.toUpperCase()}–${dest.airport}`,
+          detail: `${view.detail}${partyNote}`,
+          summary: view.summary, optionId: chosen.id,
+          amount: perParty(chosen.price), estimate: false,
+          linkUrl: googleFlightsUrl(req.origin.toUpperCase(), dest, req.departDate, req.returnDate), linkLabel: 'Google Flights' };
+      }
     } else {
       unpriced.push('flight');
       notes.push(`Flights from ${req.origin.toUpperCase()} are not in the researched dataset (it covers ${catalog.origin} departures) — flight cost is not included below.`);
@@ -202,7 +242,7 @@
     }
 
     return { source: 'dataset', sourceLabel: 'Researched dataset', checkedAt: catalog.checkedAt,
-      priced: true, flight, transfers, hotelOptions, liftTicket, passProgram,
+      priced: true, flight, flightOptions, transfers, hotelOptions, liftTicket, passProgram,
       passDays: req.skiDays, rentalPerDay: dest.rentalPerDay, gearOptions, chosenGearKey, unpriced, notes };
   }
 
@@ -323,7 +363,7 @@
     const w = catalog.windows.find((x) => x.id === window);
     const r = price(catalog, { origin: catalog.origin, tripType: dest.tripTypeID, destinationId: dest.id,
       destinationName: dest.name, custom: false, departDate: w.start, returnDate: w.end,
-      windowSelection: window, skiDays: 3, travellers: 1, style: 'cheap', fareClass: 'basic',
+      windowSelection: window, skiDays: 3, travellers: 1, style: 'cheap', fareClass: 'basic', flightOptionId: null,
       hotelTier: 'value', gear: 'auto', heldPass: 'none' });
     if (!r.priced) return null;
     const hotel = Math.min(...r.hotelOptions.map((h) => h.amount).filter((a) => a != null));
@@ -341,7 +381,9 @@
 
   // Style presets + profile derivations (web parity).
   function applyStyle(cfg, style, socialTier, gearDefault) {
-    const next = { ...cfg, style };
+    // A style preset also clears any hand-picked flight: the preset's fare
+    // class re-selects that class's anchor option.
+    const next = { ...cfg, style, flightOptionId: null };
     switch (style) {
       case 'cheap': return { ...next, fareClass: 'basic', hotelTier: 'value', hotelSelections: ['value'], gear: gearDefault };
       case 'balanced': return { ...next, fareClass: 'basic', hotelTier: 'comfort', hotelSelections: ['comfort'], gear: gearDefault };
@@ -355,5 +397,5 @@
   const profileStyle = (p) => (p.vibe === 'social' ? 'social' : p.travelStyle === 'cheap' ? 'cheap' : p.travelStyle === 'treat' ? 'expensive' : 'balanced');
   const GROUP_TRAVELLERS = { solo: 1, couple: 2, friends: 3, family: 4 };
 
-  global.TPEngine = { round2, dayDiff, resolveWindow, gearFigures, nonEpicLift, price, buildPassPlan, assembleTrip, priceFrom, applyStyle, profileGear, profileStyle, GROUP_TRAVELLERS, expediaDirectUrl, expediaHotelSearchUrl, expediaSearchUrl, googleFlightsUrl };
+  global.TPEngine = { round2, dayDiff, resolveWindow, gearFigures, nonEpicLift, price, buildPassPlan, assembleTrip, priceFrom, applyStyle, profileGear, profileStyle, GROUP_TRAVELLERS, expediaDirectUrl, expediaHotelSearchUrl, expediaSearchUrl, googleFlightsUrl, selectFlight, stopsLabel };
 })(window);

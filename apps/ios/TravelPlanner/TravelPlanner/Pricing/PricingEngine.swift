@@ -171,23 +171,55 @@ enum PricingEngine {
         "https://www.expedia.com/Hotel.h\(expediaId).Hotel-Information?chkin=\(start)&chkout=\(end)&rm1=a\(travellers)"
     }
 
+    // MARK: Flight options
+
+    /// Google-Flights-style selection, identical to the web engine: an
+    /// explicit option id wins; otherwise the anchor option for the fare
+    /// class (the exact researched fare); otherwise the cheapest in class.
+    static func selectFlight(options: [FlightOption], fareClass: FareClass, optionId: String?) -> FlightOption? {
+        guard !options.isEmpty else { return nil }
+        if let optionId, let picked = options.first(where: { $0.id == optionId }) {
+            return picked
+        }
+        if let anchor = options.first(where: { $0.anchor && $0.fareClass == fareClass.rawValue }) {
+            return anchor
+        }
+        let pool = options.filter { $0.fareClass == fareClass.rawValue }
+        return (pool.isEmpty ? options : pool).min(by: { $0.price < $1.price })
+    }
+
+    private static func dayTag(_ leg: FlightLeg) -> String {
+        leg.arriveNextDay > 0 ? " +\(leg.arriveNextDay)" : ""
+    }
+
+    static func flightSummary(_ o: FlightOption) -> String {
+        "\(o.airline) · \(o.outbound.depart) → \(o.outbound.arrive)\(dayTag(o.outbound)) · \(o.outbound.stopsShort)"
+    }
+
+    static func flightDetail(_ o: FlightOption, origin: String, airport: String) -> String {
+        "Out \(o.outbound.depart) → \(o.outbound.arrive)\(dayTag(o.outbound)) · \(o.outbound.duration) · \(o.outbound.stopsLabel)"
+            + " · Back \(o.inbound.depart) → \(o.inbound.arrive)\(dayTag(o.inbound)) · \(o.inbound.duration) · \(o.inbound.stopsLabel)"
+            + " · \(o.fareClass == FareClass.flex.rawValue ? "Flex fare (free changes)" : "Basic fare")"
+            + "\((o.bagIncluded ?? false) ? " · 1 checked bag included" : "")"
+            + " · round trip \(origin)–\(airport)"
+    }
+
     // MARK: Single-trip pricing (the DatasetProvider core)
 
     static func price(_ req: PricingRequest, catalog: Catalog) -> PricingResult {
         func empty(notes: [String], unpriced: [String]) -> PricingResult {
             PricingResult(
                 source: "dataset", sourceLabel: "Researched dataset", checkedAt: catalog.checkedAt,
-                priced: false, flight: nil, transfers: nil, hotelOptions: [], liftTicket: nil,
+                priced: false, flight: nil, flightOptions: [], transfers: nil, hotelOptions: [], liftTicket: nil,
                 passProgram: nil, passDays: req.skiDays, rentalPerDay: nil, gearOptions: [],
                 chosenGearKey: nil, unpriced: unpriced, notes: notes)
         }
 
-        if req.tripType != "ski-west" && req.tripType != "ski-japan" {
-            let label = catalog.tripType(id: req.tripType).label
-            return empty(
-                notes: ["Pricing for \(label) trips is coming soon — your dates, style and place are saved here. No numbers have been invented for this type yet; Ski — West Coast and Ski — Japan are fully priced today."],
-                unpriced: ["trip-type"])
-        }
+        // The catalog carries exactly two trip types (ski-west, ski-japan),
+        // and pricing below is driven by the destination — a stale tripType
+        // id from a removed type therefore needs no branch here: the
+        // service layer normalizes it to Ski — West Coast (see
+        // PricingService.request(for:)) and the trip still prices.
         guard !req.custom, let dest = catalog.destination(id: req.destinationId) else {
             return empty(
                 notes: ["\"\(req.destinationName)\" is not in the researched dataset yet — no prices to show. Attach the AI research provider or research this resort to price it."],
@@ -206,16 +238,30 @@ enum PricingEngine {
         let perParty = { (perPerson: Double) in round2(perPerson * Double(t)) }
         let partyNote = t > 1 ? " · × \(t) travellers" : ""
 
-        // Flight — the dataset only covers departures from the dataset origin.
+        // Flight — selectable options; the dataset only covers departures
+        // from the dataset origin. The selected option's price is the line.
         var flight: PricedOption?
+        var flightOptions: [FlightOptionInfo] = []
         if req.origin.uppercased() == catalog.origin {
-            if let fare = dest.flight(window: window, fareClass: req.fareClass),
-               let detail = dest.flightDetail[window] {
+            let options = dest.flightOptions(window: window)
+            if let chosen = selectFlight(options: options, fareClass: req.fareClass, optionId: req.flightOptionId) {
+                flightOptions = options.map { o in
+                    FlightOptionInfo(
+                        id: o.id, airline: o.airline,
+                        fareClass: FareClass(rawValue: o.fareClass) ?? .basic,
+                        pricePerPerson: o.price, amount: perParty(o.price),
+                        tags: o.tags, bagIncluded: o.bagIncluded ?? false,
+                        outbound: o.outbound, inbound: o.inbound,
+                        selected: o.id == chosen.id,
+                        summary: flightSummary(o),
+                        detail: flightDetail(o, origin: req.origin.uppercased(), airport: dest.airport))
+                }
+                let chosenInfo = flightOptions.first { $0.id == chosen.id }
                 flight = PricedOption(
                     key: "flight",
-                    label: "Flight · \(detail)",
-                    detail: "\(req.fareClass == .flex ? "Flex fare (free changes)" : "Basic fare (cheapest sensible)") · round trip \(req.origin)–\(dest.airport)\(partyNote)",
-                    amount: perParty(fare), estimate: false,
+                    label: "Flight · \(chosen.airline) · \(req.origin.uppercased())–\(dest.airport)",
+                    detail: "\(chosenInfo?.detail ?? "")\(partyNote)",
+                    amount: perParty(chosen.price), estimate: false,
                     linkUrl: googleFlightsUrl(origin: req.origin.uppercased(), dest: dest, start: req.departDate, end: req.returnDate),
                     linkLabel: "Google Flights")
             }
@@ -311,7 +357,7 @@ enum PricingEngine {
 
         return PricingResult(
             source: "dataset", sourceLabel: "Researched dataset", checkedAt: catalog.checkedAt,
-            priced: true, flight: flight, transfers: transfers, hotelOptions: hotelOptions,
+            priced: true, flight: flight, flightOptions: flightOptions, transfers: transfers, hotelOptions: hotelOptions,
             liftTicket: liftTicket, passProgram: passProgram, passDays: req.skiDays,
             rentalPerDay: dest.rentalPerDay, gearOptions: gearOptions,
             chosenGearKey: chosenGearKey, unpriced: unpriced, notes: notes)

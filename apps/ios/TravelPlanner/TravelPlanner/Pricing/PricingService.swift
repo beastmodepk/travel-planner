@@ -6,6 +6,9 @@ struct TripPricing {
     var result: PricingResult
     /// Itemised lines — shown ONLY inside the trip editor (owner's rule).
     var lines: [PricedOption]
+    /// Chosen flight's one-line summary (airline + outbound times + stops)
+    /// for the trip card; nil when flights aren't priced.
+    var flightSummary: String?
     var total: Double?
     var partial: Bool
     var variants: [VariantPricing]
@@ -72,7 +75,7 @@ final class PricingService {
                 trip.id.uuidString, trip.tripTypeID, trip.destinationID ?? "custom:\(trip.customDestinationName ?? "")",
                 PricingEngine.dateString(trip.startDate), PricingEngine.dateString(trip.endDate),
                 trip.windowSelectionRaw, String(trip.activityDays), trip.styleRaw, trip.fareClassRaw,
-                trip.gearRaw, trip.primaryVariant?.tierRaw ?? "-",
+                trip.flightOptionID, trip.gearRaw, trip.primaryVariant?.tierRaw ?? "-",
             ].joined(separator: "|"))
         }
         return parts.joined(separator: ";")
@@ -114,6 +117,7 @@ final class PricingService {
             travellers: settings?.travellers ?? 1,
             style: trip.style,
             fareClass: trip.fareClass,
+            flightOptionId: trip.flightOptionID.isEmpty ? nil : trip.flightOptionID,
             hotelTier: trip.primaryVariant?.tier ?? .comfort,
             gear: trip.gear,
             heldPass: profile?.passHeld ?? .none)
@@ -135,7 +139,7 @@ final class PricingService {
             let r = results[i]
             guard r.priced else {
                 priced[trip.id] = TripPricing(
-                    result: r, lines: [], total: nil, partial: true, variants: [], warnings: [])
+                    result: r, lines: [], flightSummary: nil, total: nil, partial: true, variants: [], warnings: [])
                 continue
             }
             var lines: [PricedOption] = []

@@ -233,8 +233,47 @@ final class PricingEngineTests: XCTestCase {
                 style: .balanced, fareClass: .basic, hotelTier: .comfort,
                 gear: .auto, heldPass: .none),
             catalog: catalog)
-        XCTAssertFalse(result.priced)
-        XCTAssertTrue(result.unpriced.contains("trip-type"))
+        XCTAssertTrue(result.priced)
+        XCTAssertFalse(result.unpriced.contains("trip-type"))
+        XCTAssertEqual(result.flight?.amount ?? -1, 430.81, accuracy: 0.001)
+    }
+
+    // MARK: Flight options
+
+    func testFlightOptionSelectionDrivesFlightLine() throws {
+        let parkCity = try XCTUnwrap(catalog.destination(id: "park-city"))
+        let american = try XCTUnwrap(parkCity.flightOptions(window: "dec").first { $0.airline == "American" })
+        func price(_ optionId: String?) -> PricingResult {
+            PricingEngine.price(
+                PricingRequest(
+                    origin: "BOS", tripType: "ski-west", destinationId: "park-city",
+                    destinationName: "Park City", custom: false,
+                    departDate: "2026-12-19", returnDate: "2026-12-23",
+                    windowSelection: .dec, skiDays: 3, travellers: 1,
+                    style: .balanced, fareClass: .basic, flightOptionId: optionId,
+                    hotelTier: .comfort, gear: .auto, heldPass: .none),
+                catalog: catalog)
+        }
+        // Default (no pick) = the basic anchor, the researched JetBlue fare.
+        let dflt = price(nil)
+        XCTAssertEqual(dflt.flight?.amount ?? -1, 430.81, accuracy: 0.001)
+        XCTAssertEqual(dflt.flightOptions.count, 3)
+        XCTAssertEqual(dflt.flightOptions.first { $0.selected }?.airline, "JetBlue")
+        // An explicit pick replaces the line, dollar for dollar.
+        let picked = price(american.id)
+        XCTAssertEqual(picked.flight?.amount ?? -1, 489.20, accuracy: 0.001)
+        XCTAssertEqual(picked.flightOptions.first { $0.selected }?.id, american.id)
+        // Flex with no pick = the flex anchor.
+        let flex = PricingEngine.price(
+            PricingRequest(
+                origin: "BOS", tripType: "ski-west", destinationId: "park-city",
+                destinationName: "Park City", custom: false,
+                departDate: "2026-12-19", returnDate: "2026-12-23",
+                windowSelection: .dec, skiDays: 3, travellers: 1,
+                style: .expensive, fareClass: .flex, hotelTier: .premium,
+                gear: .auto, heldPass: .none),
+            catalog: catalog)
+        XCTAssertEqual(flex.flight?.amount ?? -1, 560.80, accuracy: 0.001)
     }
 
     // MARK: Cache discipline

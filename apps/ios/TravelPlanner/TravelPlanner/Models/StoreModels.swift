@@ -84,6 +84,9 @@ final class Trip {
     var activityDays: Int = 3
     var styleRaw: String = TripStyle.balanced.rawValue
     var fareClassRaw: String = FareClass.basic.rawValue
+    /// Explicit flight pick (dataset flight-option id); "" = the anchor
+    /// option for the fare class (the researched fare).
+    var flightOptionID: String = ""
     var gearRaw: String = GearChoice.auto.rawValue
     var phaseRaw: String = TripPhase.plan.rawValue
     var createdAt: Date = Date()

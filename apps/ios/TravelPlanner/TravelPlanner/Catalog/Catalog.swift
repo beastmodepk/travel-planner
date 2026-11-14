@@ -81,10 +81,49 @@ struct NonEpicLiftTable: Decodable {
     let alta: AltaRates
 }
 
-struct FarePair: Decodable {
-    let basic: Double
-    let flex: Double
-    func fare(_ fareClass: FareClass) -> Double { fareClass == .flex ? flex : basic }
+/// One leg of a flight option. Times are local to the departure/arrival
+/// airports; arriveNextDay is how many calendar days later the arrival
+/// falls (0, 1, or 2 for the long-haul Japan routings).
+struct FlightLeg: Decodable {
+    let depart: String  // "06:55"
+    let arrive: String  // "10:45"
+    let arriveNextDay: Int
+    let duration: String  // "5h 50m"
+    let stops: Int
+    let via: String?
+    var stopsLabel: String {
+        if stops == 0 { return "Nonstop" }
+        return "\(stops) stop\(stops == 1 ? "" : "s")\(via.map { " · \($0)" } ?? "")"
+    }
+    var stopsShort: String { stops == 0 ? "Nonstop" : "\(stops) stop\(stops == 1 ? "" : "s")" }
+}
+
+/// One selectable flight, Google-Flights style. `anchor` marks the exact
+/// researched fare for its fare class — the default selection, so figures
+/// verified against the Nov 13, 2026 research stay reproducible.
+struct FlightOption: Decodable, Identifiable {
+    let id: String
+    let airline: String
+    let fareClass: String  // "basic" | "flex"
+    let price: Double      // per person, round trip
+    let anchor: Bool
+    let tags: [String]     // "best" | "cheapest"
+    let bagIncluded: Bool?
+    let outbound: FlightLeg
+    let inbound: FlightLeg
+
+    enum CodingKeys: String, CodingKey {
+        case id, airline, fareClass, price, anchor, tags, bagIncluded, outbound
+        case inbound = "return"
+    }
+}
+
+/// The per-window option lists plus the snapshot honesty note.
+struct FlightWindows: Decodable {
+    let note: String
+    let dec: [FlightOption]
+    let jan: [FlightOption]
+    func options(window: String) -> [FlightOption] { window == "jan" ? jan : dec }
 }
 
 struct HotelDef: Decodable {
@@ -112,8 +151,7 @@ struct Destination: Decodable, Identifiable {
     /// Round-trip airport transfers, per person.
     let transfers: Double
     let transfersDetail: String
-    let flights: [String: FarePair]
-    let flightDetail: [String: String]
+    let flights: FlightWindows
     let hotels: [String: [String: HotelDef]]
     let rentalPerDay: Double
     let rentalEstimate: Bool
@@ -131,7 +169,7 @@ struct Destination: Decodable, Identifiable {
     let photoAlt: String
 
     func hotel(window: String, tier: HotelTier) -> HotelDef? { hotels[window]?[tier.rawValue] }
-    func flight(window: String, fareClass: FareClass) -> Double? { flights[window]?.fare(fareClass) }
+    func flightOptions(window: String) -> [FlightOption] { flights.options(window: window) }
 }
 
 enum CatalogError: Error {

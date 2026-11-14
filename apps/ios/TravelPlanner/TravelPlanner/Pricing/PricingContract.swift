@@ -20,6 +20,9 @@ struct PricingRequest {
     var travellers: Int
     var style: TripStyle
     var fareClass: FareClass
+    /// Explicit flight pick (a dataset flight-option id). Nil = the anchor
+    /// option for `fareClass` — the researched fare — is used.
+    var flightOptionId: String? = nil
     var hotelTier: HotelTier
     var gear: GearChoice
     /// Pass the traveller already holds — providers zero covered lift costs.
@@ -52,12 +55,36 @@ struct PassProgram {
     var linkLabel: String
 }
 
+/// Display-ready view of one dataset flight option, priced for the party.
+struct FlightOptionInfo: Identifiable {
+    var id: String
+    var airline: String
+    var fareClass: FareClass
+    /// Per-person round-trip price from the dataset.
+    var pricePerPerson: Double
+    /// Whole-party amount (pricePerPerson × travellers).
+    var amount: Double
+    var tags: [String]  // "best" | "cheapest"
+    var bagIncluded: Bool
+    var outbound: FlightLeg
+    var inbound: FlightLeg
+    var selected: Bool
+    /// "JetBlue · 06:55 → 10:45 · Nonstop" — cards and summaries.
+    var summary: String
+    /// Both legs with dates-free times, durations and stops — editor rows.
+    var detail: String
+}
+
 struct PricingResult {
     var source: String       // "dataset" | "ai-research"
     var sourceLabel: String  // "Researched dataset"
     var checkedAt: String    // "2026-11-13"
     var priced: Bool
     var flight: PricedOption?
+    /// All flight options for the trip's route/window; the selected one's
+    /// price is the flight line above. Empty when flights aren't priced
+    /// for the request's origin.
+    var flightOptions: [FlightOptionInfo]
     var transfers: PricedOption?
     var hotelOptions: [PricedOption]
     var liftTicket: PricedOption?

@@ -65,6 +65,11 @@ struct TripCardView: View {
                 Text(metaLine)
                     .font(.subheadline)
                     .foregroundStyle(TP.dim)
+                if let flightSummary = pricing?.flightSummary, let flightAmount = pricing?.lines.first(where: { $0.key == "flight" })?.amount {
+                    Text("\(flightSummary) · \(TP.money(flightAmount))")
+                        .font(.caption)
+                        .foregroundStyle(TP.faint)
+                }
 
                 if let suggestion = PhaseLogic.suggestion(for: trip), !suggestionDismissed {
                     VStack(alignment: .leading, spacing: 8) {
