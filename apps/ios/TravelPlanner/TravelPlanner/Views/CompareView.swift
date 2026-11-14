@@ -111,7 +111,7 @@ struct CompareView: View {
 
     private struct Row {
         var label: String
-        var values: [Column] -> (amount: Double?, estimate: Bool)
+        var values: ([Column]) -> (amount: Double?, estimate: Bool)
     }
 
     private var rows: [Row] {
