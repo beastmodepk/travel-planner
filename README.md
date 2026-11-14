@@ -39,15 +39,16 @@ This repo is now the single home for the whole product:
 
 | Path | What lives there |
 |---|---|
-| `apps/ios/` | **Travel Planner for iPhone** — native Swift 6 / SwiftUI app (iOS 17+), bundle ID `com.parthey.travelplanner`. The production app; see `apps/ios/README.md`. |
+| `apps/ios/` | **Travel Planner for iPhone** — native Swift 6 / SwiftUI app (iOS 17+), bundle ID `com.parthey.travelplanner`. See `apps/ios/README.md`. |
+| `apps/web/` | **Travel Planner for the web** — the same v1.0 features as iOS, dependency-free static site, live at <https://beastmodepk.github.io/travel-planner/> (deployed by `pages.yml`). See `apps/web/README.md` and `docs/PARITY.md`. |
 | `packages/dataset/` | `dataset.json` — the researched price catalog (checked Nov 13, 2026). **Single source of truth** for web and iOS; `dataset.schema.json` + `CHANGELOG.md` alongside. |
 | `packages/contracts/` | The `PricingProvider` / `EmailProvider` contract definitions and JSON payload schemas both apps implement. |
-| `docs/` | `PRIVACY.md` (App Store: Data Not Collected), `VERSIONING.md` (house standard), `PUBLISHING.md` (owner gates + the secrets Parthey adds later). |
-| `.github/workflows/` | `ci.yml` (structural checks, no secrets needed) and `release.yml` (house release pipeline: merge to `main` → signed archive → TestFlight; **dry-runs unsigned until the ASC secrets exist**). |
+| `docs/` | `PARITY.md` (the web↔iOS parity contract), `PRIVACY.md` (App Store: Data Not Collected), `VERSIONING.md` (house standard), `PUBLISHING.md` (owner gates + the secrets Parthey adds later). |
+| `.github/workflows/` | `ci.yml` (structural checks + unsigned build/test, no secrets needed), `release.yml` (house release pipeline: merge to `main` → signed archive → TestFlight; **dry-runs unsigned until the ASC secrets exist**), `pages.yml` (deploys `apps/web` to GitHub Pages). |
 
 The Muse web prototype remains the concept proving ground; its pricing maths was
-ported 1:1 into the iOS pricing engine, and its verified totals are the iOS
-unit-test goldens (see `apps/ios/TravelPlanner/TravelPlannerTests/`).
+ported 1:1 into both the iOS pricing engine and the web engine, and its
+verified totals are the test goldens on both sides.
 
 **Keys:** the iOS app needs no keys to run. Signing/TestFlight activates when
 Parthey adds four GitHub secrets — `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`,
