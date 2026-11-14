@@ -132,7 +132,7 @@ struct CompareView: View {
                 Text("").frame(width: 74, alignment: .leading)
                 ForEach(columns, id: \.pick.id) { column in
                     Text(column.variant.hotelName)
-                        .font(.caption.bold)
+                        .font(.caption.bold())
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .padding(.horizontal, 6)
