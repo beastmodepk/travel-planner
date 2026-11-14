@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import SwiftData
 import UIKit
 
@@ -6,6 +7,7 @@ import UIKit
 /// Documents/Brochures, records a BrochureRequest, and hands it to the
 /// configured EmailProvider. Mirrors the web's brochure flow: one request
 /// per selected variant, honest "Queued for assistant" status.
+@Observable
 @MainActor
 final class BrochureService {
     let catalog: Catalog
